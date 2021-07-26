@@ -1,0 +1,29 @@
+[mysqld]
+server_id=54
+# server_id=55
+# server_id=56
+
+gtid_mode=ON
+enforce-gtid-consistency=true
+binlog_checksum=NONE
+innodb_buffer_pool_size=4G
+ 
+disabled_storage_engines="MyISAM,BLACKHOLE,FEDERATED,ARCHIVE,MEMORY"
+ 
+log_bin=binlog
+log_slave_updates=ON
+binlog_format=ROW
+master_info_repository=TABLE
+relay_log_info_repository=TABLE
+ 
+transaction_write_set_extraction=XXHASH64 # default value
+group_replication_group_name="4605b82a-9153-4c64-8583-d6d713a323db"
+# group_replication_group_name="c42af047-4215-4a4a-af39-739c6dbbed09"
+# group_replication_group_name="4bdd375a-a2e7-46ec-a570-b88817de9310"
+group_replication_start_on_boot=off
+
+group_replication_local_address= "10.0.0.54:33061"
+group_replication_local_address= "10.0.0.55:33061"
+group_replication_local_address= "10.0.0.56:33061"
+
+group_replication_group_seeds= "10.0.0.54:33061,10.0.0.55:33061,10.0.0.56:33061"
