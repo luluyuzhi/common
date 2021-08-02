@@ -6,6 +6,12 @@
 
 
 
+## 两阶段提交
+
+
+
+
+
 [MySQL · 引擎特性 · DROP TABLE之binlog解析](https://blog.csdn.net/yang131631/article/details/78719946#:~:text=%E5%AF%B9%E4%BA%8E%E6%99%AE%E9%80%9A%E8%A1%A8%EF%BC%8C%E6%97%A0%E8%AE%BA,%E5%BF%97%E5%B0%B1%E4%B8%8D%E6%98%AF%E5%BF%85%E9%A1%BB%E7%9A%84%E3%80%82)
 
 [什么是MySQL binlog？ MySQL binlog的用途及格式解析](https://m.php.cn/article/361643.html)
