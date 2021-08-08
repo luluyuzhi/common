@@ -1,1 +1,2 @@
-![img](..\source\img\dgb)
+![img](..\source\img\dgb.png)
+
