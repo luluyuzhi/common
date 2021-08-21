@@ -57,3 +57,5 @@ lock tables t_student read;
 lock tables t_stuent wirte;
 ```
 
+[MySQL查看系统状态和系统变量](https://blog.csdn.net/chuanguan1820/article/details/100872541)
+

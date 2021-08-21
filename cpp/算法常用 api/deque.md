@@ -1,4 +1,4 @@
-双端队列
+### deque
 
 ```c++
 #include <deque>
@@ -16,5 +16,19 @@ ideq.clear():清空双端队列中元素
 ideq.empty() :向量是否为空，若true,则向量中无元素
 //e)大小函数
 ideq.size():返回向量中元素的个数
+```
+
+### std::set
+
+```c++
+std::pair<iterator,bool> insert( const value_type& value );
+std::pair<iterator,bool> insert( value_type&& value );
+iterator insert( iterator hint, const value_type& value ); 
+iterator insert( const_iterator hint, const value_type& value );
+iterator insert( const_iterator hint, value_type&& value );
+
+// find
+template< class K > iterator find( const K& x );	// 14
+
 ```
 
