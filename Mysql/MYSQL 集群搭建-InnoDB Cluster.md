@@ -39,8 +39,6 @@
 
 之前在高版本下 MySql 依赖于 Python3 ，这里需要注明一点 MySql 官方文档指定 python 必须存在于 `/usr/bin/` 目录下
 
-
-
 ```bash
  ln -s /usr/bin/python3 /usr/bin/python
 ```
