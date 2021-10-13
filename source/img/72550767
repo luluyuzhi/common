@@ -1,0 +1,1879 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <link rel="canonical" href="https://blog.csdn.net/aaa821/article/details/72550767"/>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="renderer" content="webkit"/>
+    <meta name="force-rendering" content="webkit"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="report" content='{"pid": "blog", "spm":"1001.2101"}'>
+    <meta name="referrer" content="always">
+    <meta http-equiv="Cache-Control" content="no-siteapp" /><link rel="alternate" media="handheld" href="#" />
+    <meta name="shenma-site-verification" content="5a59773ab8077d4a62bf469ab966a63b_1497598848">
+    <meta name="applicable-device" content="pc">
+    <link  href="https://g.csdnimg.cn/static/logo/favicon32.ico"  rel="shortcut icon" type="image/x-icon" />
+    <title>读扩散和写扩散的理解_AAA821的专栏-CSDN博客_扩散写</title>
+    <script>
+      (function(){ 
+        var el = document.createElement("script"); 
+        el.src = "https://s3a.pstatp.com/toutiao/push.js?1abfa13dfe74d72d41d83c86d240de427e7cac50c51ead53b2e79d40c7952a23ed7716d05b4a0f683a653eab3e214672511de2457e74e99286eb2c33f4428830"; 
+        el.id = "ttzz"; 
+        var s = document.getElementsByTagName("script")[0]; 
+        s.parentNode.insertBefore(el, s);
+      })(window)
+    </script>
+        <meta name="keywords" content="扩散写">
+        <meta name="csdn-baidu-search"  content='{"autorun":true,"install":true,"keyword":"扩散写"}'>
+    <meta name="description" content="今天看一篇文章时，提到了微信的群聊是写扩散的，第一次接触到写扩散这个名词，于是去查了下资料，有写扩散就有读扩散嘛定义如下: 根据上面的定义，我是这样理解的，什么是写扩散，什么是读扩散，要怎么区分他们，区别之处就在于“主动”写扩散是主动把消息写到订阅者的消息列表里，这样订阅者就不用去我的outbox拉取消息 ，所以当我要是有很多订阅者时，我就要写很多次，这就是上面定义中说的写">
+    <script src="//g.csdnimg.cn/tingyun/1.8.5/blog.js" type='text/javascript'></script>
+        <link rel="stylesheet" type="text/css" href="https://csdnimg.cn/release/blogv2/dist/pc/css/detail_enter-049c37bb43.min.css">
+    <style>
+        #content_views pre{
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none; 
+            user-select: none; 
+        }
+        #content_views pre code{
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none; 
+            user-select: none; 
+        }
+    </style>
+    <script type="application/ld+json">{"@context":"https://ziyuan.baidu.com/contexts/cambrian.jsonld","@id":"https://blog.csdn.net/aaa821/article/details/72550767","appid":"1638831770136827","pubDate":"2017-05-19T17:51:11","title":"读扩散和写扩散的理解_AAA821的专栏-CSDN博客_扩散写","upDate":"2017-05-19T17:51:11"}</script>
+        <link rel="stylesheet" type="text/css" href="https://csdnimg.cn/release/blogv2/dist/pc/themesSkin/skin3-template/skin3-template-45808e735f.min.css">
+    <script src="https://csdnimg.cn/public/common/libs/jquery/jquery-1.9.1.min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        var isCorporate = false;//注释删除enterprise
+        var username =  "AAA821";
+        var skinImg = "white";
+        var blog_address = "https://blog.csdn.net/AAA821";
+        var currentUserName = "";
+        var isOwner = false;
+        var loginUrl = "http://passport.csdn.net/account/login?from=https://blog.csdn.net/aaa821/article/details/72550767";
+        var blogUrl = "https://blog.csdn.net/";
+        var avatar = "https://profile.csdnimg.cn/D/1/5/3_aaa821";
+        var articleTitle = "读扩散和写扩散的理解";
+        var articleDesc = "今天看一篇文章时，提到了微信的群聊是写扩散的，第一次接触到写扩散这个名词，于是去查了下资料，有写扩散就有读扩散嘛定义如下: 根据上面的定义，我是这样理解的，什么是写扩散，什么是读扩散，要怎么区分他们，区别之处就在于“主动”写扩散是主动把消息写到订阅者的消息列表里，这样订阅者就不用去我的outbox拉取消息 ，所以当我要是有很多订阅者时，我就要写很多次，这就是上面定义中说的写";
+        var articleTitles = "读扩散和写扩散的理解_AAA821的专栏-CSDN博客_扩散写";
+        var nickName = "AAA821";
+        var articleDetailUrl = "https://blog.csdn.net/AAA821/article/details/72550767";
+        if(window.location.host.split('.').length == 3) {
+            blog_address = blogUrl + username;
+        }
+        var skinStatus = "White";
+        var blogStaticHost = "https://csdnimg.cn/release/blogv2/"
+    </script>
+    <script src="https://g.csdnimg.cn/??fixed-sidebar/1.1.6/fixed-sidebar.js" type="text/javascript"></script>
+    <script src='//g.csdnimg.cn/common/csdn-report/report.js' type='text/javascript'></script>
+    <link rel="stylesheet" type="text/css" href="https://csdnimg.cn/public/sandalstrap/1.4/css/sandalstrap.min.css">
+    <style>
+        .MathJax, .MathJax_Message, .MathJax_Preview{
+            display: none
+        }
+    </style>
+    <script src="https://dup.baidustatic.com/js/ds.js"></script>
+</head>
+<body class="nodata " style="">
+        <script>
+            var toolbarSearchExt = '{"landingWord":["扩散写"],"queryWord":"","tag":[],"title":"读扩散和写扩散的理解"}';
+        </script>
+    <script src="https://g.csdnimg.cn/common/csdn-toolbar/csdn-toolbar.js" type="text/javascript"></script>
+    <script>
+    (function(){
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        }
+        else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+    </script>
+<link rel="stylesheet" href="https://csdnimg.cn/release/blogv2/dist/pc/css/blog_code-01256533b5.min.css">
+<link rel="stylesheet" href="https://csdnimg.cn/release/blogv2/dist/mdeditor/css/editerView/chart-3456820cac.css" />
+<div class="main_father clearfix d-flex justify-content-center" style="height:100%;"> 
+    <div class="container clearfix" id="mainBox">
+        <main>
+<script type="text/javascript">
+    function getQueryString(name) {   
+      var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象  
+      var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+      if( r != null ) return decodeURIComponent( r[2] ); return '';   
+    }
+    function stripscript(s){ 
+      var pattern = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\].<>/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？%]") 
+      var rs = ""; 
+      for (var i = 0; i < s.length; i++) { 
+        rs = rs+s.substr(i, 1).replace(pattern, ''); 
+      } 
+      return rs; 
+    }
+    var blogHotWords = stripscript(getQueryString('utm_term')).length > 1 ? stripscript(getQueryString('utm_term')) : ''
+</script>
+<div class="blog-content-box">
+        <div class="article-header-box">
+        <div class="article-header">
+            <div class="article-title-box">
+                <h1 class="title-article" id="articleContentId">读扩散和写扩散的理解</h1>
+            </div>
+            <div class="article-info-box">
+                <div class="article-bar-top">
+                    <img class="article-type-img" src="https://csdnimg.cn/release/blogv2/dist/pc/img/original.png" alt="">
+                    <div class="bar-content">
+                    <a class="follow-nickName " href="https://blog.csdn.net/AAA821" target="_blank" rel="noopener">AAA821</a>
+                    <span class="time">2017-05-19 17:51:11</span>
+                    <img class="article-read-img article-heard-img" src="https://csdnimg.cn/release/blogv2/dist/pc/img/articleReadEyes.png" alt="">
+                    <span class="read-count">14664</span>
+                    <a id="blog_detail_zk_collection" class="un-collection" data-report-click='{"mod":"popu_823","spm":"1001.2101.3001.4232","ab":"new"}'>
+                        <img class="article-collect-img article-heard-img un-collect-status isdefault" style="display:inline-block" src="https://csdnimg.cn/release/blogv2/dist/pc/img/tobarCollect.png" alt="">
+                        <img class="article-collect-img article-heard-img collect-status isactive" style="display:none" src="https://csdnimg.cn/release/blogv2/dist/pc/img/tobarCollectionActive.png" alt="">
+                        <span class="name">收藏</span>
+                        <span class="get-collection">
+                            7
+                        </span>
+                    </a>
+                    </div>
+                </div>
+                <div class="blog-tags-box">
+                    <div class="tags-box artic-tag-box">
+                            <span class="label">分类专栏：</span>
+                                <a class="tag-link" href="https://blog.csdn.net/aaa821/category_6970218.html" target="_blank" rel="noopener">JAVA基础</a>
+                    </div>
+                </div>
+                <div class="slide-content-box">
+                    <div class="article-copyright">
+                        <div class="creativecommons">
+                            版权声明：本文为博主原创文章，遵循<a href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener"> CC 4.0 BY-SA </a>版权协议，转载请附上原文出处链接和本声明。
+                        </div>
+                        <div class="article-source-link">
+                            本文链接：<a href="https://blog.csdn.net/aaa821/article/details/72550767" target="_blank">https://blog.csdn.net/aaa821/article/details/72550767</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="operating">
+                    <a class="href-article-edit slide-toggle">版权</a>
+                </div>
+            </div>
+        </div>
+    </div>
+        <div id="blogColumnPayAdvert">
+            <div class="column-group">
+                <div class="column-group-item column-group0 column-group-item-one">
+                    <div class="item-l">
+                        <a class="item-target" href="https://blog.csdn.net/aaa821/category_6970218.html" target="_blank" title="JAVA基础"
+                        data-report-view='{"spm":"1001.2101.3001.6332"}'
+                        data-report-click='{"spm":"1001.2101.3001.6332"}'>
+                            <img class="item-target" src="https://img-blog.csdnimg.cn/20201014180756738.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="">
+                            <span class="title item-target">JAVA基础</span>
+                        </a>
+                        <span class="dec">专栏收录该内容</span>
+                    </div>
+                    <div class="item-m">
+                        <span>49 篇文章</span>
+                        <span>0 订阅</span>
+                    </div>
+                    <div class="item-r">
+                            <a class="item-target article-column-bt articleColumnFreeBt" data-id="6970218">订阅专栏</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <article class="baidu_pl">
+        <div id="article_content" class="article_content clearfix">
+        <link rel="stylesheet" href="https://csdnimg.cn/release/blogv2/dist/mdeditor/css/editerView/ck_htmledit_views-1a85854398.css">
+                <div id="content_views" class="htmledit_views">
+                    <p>今天看一篇文章时&#xff0c;提到了微信的群聊是写扩散的&#xff0c;第一次接触到写扩散这个名词&#xff0c;于是去查了下资料&#xff0c;有写扩散就有读扩散嘛</p> 
+<p>定义如下:</p> 
+<p> <img src="https://img-blog.csdn.net/20170519175231054?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvQUFBODIx/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA&#61;&#61;/dissolve/70/gravity/Center" alt="" /><img src="" alt="" /></p> 
+<p>根据上面的定义&#xff0c;我是这样理解的&#xff0c;什么是写扩散&#xff0c;什么是读扩散&#xff0c;要怎么区分他们&#xff0c;区别之处就在于“主动”</p> 
+<p><br /> </p> 
+<p>写扩散是主动把消息写到订阅者的消息列表里&#xff0c;这样订阅者就不用去我的outbox拉取消息 &#xff0c;所以当我要是有很多订阅者时&#xff0c;我就要写很多次&#xff0c;这就是上面定义中说的写很重</p> 
+<p><br /> </p> 
+<p>读扩散是主动去拉取被订阅者的outbox,这样就不需要被订阅者主动写消息到我的消息列表里来&#xff0c;所以当我要是订阅了很多人时&#xff0c;我就要去读取这些人的所有新消息&#xff0c;所以就出现了读很重</p> 
+<p><br /> </p> 
+<p>我又联想到了数据库中表之间的关系设计了,两个表之间有关联关系&#xff0c;那这个关系该由谁来维护&#xff0c;同样可以用读扩散和写扩散的概念来思考&#xff0c;其实也可以说&#xff0c;表关系的维护设计&#xff0c;是写扩散和读扩散的具体实现。</p>
+                </div>
+        </div>
+    </article>
+</div>
+<div class="more-toolbox-new" id="toolBarBox">
+    <div class="left-toolbox">
+        <div class="toolbox-left">
+            <div class="profile-box"><a class="profile-href" target="_blank" href="https://blog.csdn.net/AAA821"><img class="profile-img" src="https://profile.csdnimg.cn/D/1/5/3_aaa821"><span class="profile-name">AAA821</span></a></div>
+            <div class="profile-attend">
+                    <a class="tool-attend tool-bt-button tool-bt-attend" href="javascript:;" data-report-view='{"mod":"1592215036_002","spm":"1001.2101.3001.4232","extend1":"关注"}'>关注</a>
+                <a class="tool-item-follow active-animation" style="display:none;">关注</a>
+            </div>
+        </div>
+        <div class="toolbox-middle">
+        <ul class="toolbox-list">
+            <li class="tool-item tool-item-size tool-active is-like" id="is-like">
+            <a class="tool-item-href">
+                <img style="display:none;" id="is-like-imgactive-animation-like" class="animation-dom active-animation" src="https://csdnimg.cn/release/blogv2/dist/pc/img/tobarThumbUpactive.png" alt="">
+                <img class="isactive" style="display:none" id="is-like-imgactive" src="https://csdnimg.cn/release/blogv2/dist/pc/img/newHeart1Active.png" alt="">
+                <img class="isdefault" style="display:block" id="is-like-img" src="https://csdnimg.cn/release/blogv2/dist/pc/img/newHeart1White.png" alt="">  
+                <span id="spanCount" class="count ">
+                        2
+                </span>
+            </a>
+            <div class="tool-hover-tip"><span class="text space">点赞</span></div>
+            </li>
+            <li class="tool-item tool-item-size tool-active tool-item-comment">
+            <a class="tool-item-href" href="#commentBox">
+                <img class="isdefault" src="https://csdnimg.cn/release/blogv2/dist/pc/img/newCommentWhite.png" alt="">
+                <span class="count">
+                    0
+                </span>
+            </a>
+            <div class="tool-hover-tip"><span class="text space">评论</span></div>
+            </li>
+            <li class="tool-item tool-item-size tool-active is-collection ">
+            <a class="tool-item-href" href="javascript:;" data-report-click='{"mod":"popu_824","spm":"1001.2101.3001.4130","ab":"new"}'>
+                <img style="display:none" id="is-collection-img-collection" class="animation-dom active-animation" src="https://csdnimg.cn/release/blogv2/dist/pc/img/tobarCollectionActive.png" alt="">
+                <img class="isdefault" id="is-collection-img" style="display:block" src="https://csdnimg.cn/release/blogv2/dist/pc/img/newCollectWhite.png" alt="">
+                <img class="isactive" id="is-collection-imgactive" style="display:none" src="https://csdnimg.cn/release/blogv2/dist/pc/img/newCollectActive.png" alt="">
+                <span class="count get-collection " id="get-collection">
+                    7
+                </span>
+            </a>
+            <div class="tool-hover-tip"><span class="text space">收藏</span></div>
+            </li>
+            <li class="tool-item tool-active">
+                <a class="" href="javascript:;">
+                    <img class="company active" id="health-companies" src="https://csdnimg.cn/release/blogv2/dist/pc/img/newHealthCompanies1Active.gif" alt="一键三连">
+                </a>
+                <div class="tool-hover-tip three-click"><span class="text">一键三连</span></div>
+            </li>
+            <li class="tool-item tool-item-bar">
+            </li>
+            <li class="tool-item tool-item-size tool-active tool-QRcode" id="tool-share">
+                <a class="tool-item-href" href="javascript:;" data-report-click='{"mod":"1582594662_002","spm":"1001.2101.3001.4129","ab":"new"}'>
+                    <img class="isdefault" src="https://csdnimg.cn/release/blogv2/dist/pc/img/newShareWhite.png" alt="">
+                </a>
+                <div class="QRcode" id="tool-QRcode">
+                    <p class="title">
+                    扫一扫，分享海报
+                    </p>
+                    <div id='shareCode'></div>
+                </div>
+            </li>
+        </ul>
+        </div>
+        <div class="toolbox-right">
+                <div class="tool-directory">
+                    <a class="bt-columnlist-show"
+                    data-id="6970218"
+                    data-free="true"
+                    data-subscribe="false"
+                    data-title="JAVA基础"
+                    data-img="https://img-blog.csdnimg.cn/20201014180756738.png?x-oss-process=image/resize,m_fixed,h_64,w_64"
+                    data-url="https://blog.csdn.net/aaa821/category_6970218.html"
+                    data-sum="49"
+                    data-people="0"
+                    data-price="0"
+                    data-oldprice="0"
+                    data-join="false"
+                    data-studyvip="false"
+                    data-studysubscribe="false"
+                    data-report-view='{"spm":"1001.2101.3001.6334","extend1":"专栏目录"}'
+                    data-report-click='{"spm":"1001.2101.3001.6334","extend1":"专栏目录"}'
+                    >专栏目录</a>
+                </div>
+        </div>
+    </div>  
+</div>
+<script type=text/javascript crossorigin src="https://csdnimg.cn/release/phoenix/production/qrcode-7c90a92189.min.js"></script>
+<script src="//g.csdnimg.cn/??sharewx/1.2.1/sharewx.js" type="text/javascript"></script>
+<script type="text/javascript" crossorigin src="https://g.csdnimg.cn/user-login/3.0.1/user-login.js"></script>
+<script type="text/javascript" crossorigin src="https://g.csdnimg.cn/collection-box/2.0.6/collection-box.js"></script>
+                <div class="first-recommend-box recommend-box">
+<div class="recommend-item-box type_download clearfix" data-url="http://download.csdn.net/download/formulaone9275/3057967"  data-report-view='{"ab":"new","mod":"popu_871","extra":"{\"utm_medium\":\"distribute.pc_relevant_t0.none-task-download-2~default~CTRLIST~default-1.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"1","strategy":"2~default~CTRLIST~default","dest":"http://download.csdn.net/download/formulaone9275/3057967"}'>
+	<div class="content-box">
+		<div class="content-blog display-flex">
+			<div class="title-box">
+				<a href="http://download.csdn.net/download/formulaone9275/3057967" class="tit" target="_blank"  data-report-click='{"ab":"new","mod":"popu_871","extra":"{\"utm_medium\":\"distribute.pc_relevant_t0.none-task-download-2~default~CTRLIST~default-1.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"1","strategy":"2~default~CTRLIST~default","dest":"http://download.csdn.net/download/formulaone9275/3057967"}'  data-report-query='utm_medium=distribute.pc_relevant_t0.none-task-download-2%7Edefault%7ECTRLIST%7Edefault-1.no_search_link&depth_1-utm_source=distribute.pc_relevant_t0.none-task-download-2%7Edefault%7ECTRLIST%7Edefault-1.no_search_link'>
+					<div class="left ellipsis-online ellipsis-online-1">点<em>扩散</em>函数（PSF）</div>
+				</a>
+			</div>
+			<div class="info-box display-flex">
+				<div class="info display-flex">
+					<span class="info-block">03-03</span>
+				</div>
+			</div>
+		</div>
+		<div class="desc-box">
+			<a href="http://download.csdn.net/download/formulaone9275/3057967" target="_blank"  data-report-click='{"ab":"new","mod":"popu_871","extra":"{\"utm_medium\":\"distribute.pc_relevant_t0.none-task-download-2~default~CTRLIST~default-1.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"1","strategy":"2~default~CTRLIST~default","dest":"http://download.csdn.net/download/formulaone9275/3057967"}'  data-report-query='utm_medium=distribute.pc_relevant_t0.none-task-download-2%7Edefault%7ECTRLIST%7Edefault-1.no_search_link&depth_1-utm_source=distribute.pc_relevant_t0.none-task-download-2%7Edefault%7ECTRLIST%7Edefault-1.no_search_link'>
+				<div class="desc ellipsis-online ellipsis-online-1">点<em>扩散</em>函数  C++  关于面结构的点<em>扩散</em>函数</div>
+			</a>
+		</div>
+	</div>
+</div>
+                </div>
+            <div class="second-recommend-box recommend-box">
+<div class="recommend-item-box type_blog clearfix" data-url="https://blog.csdn.net/weixin_34381687/article/details/89665144"  data-report-view='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~CTRLIST~default-1.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"1","strategy":"2~default~CTRLIST~default","dest":"https://blog.csdn.net/weixin_34381687/article/details/89665144"}'>
+	<div class="content-box">
+		<div class="content-blog display-flex">
+			<div class="title-box">
+				<a href="https://blog.csdn.net/weixin_34381687/article/details/89665144" class="tit" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~CTRLIST~default-1.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"1","strategy":"2~default~CTRLIST~default","dest":"https://blog.csdn.net/weixin_34381687/article/details/89665144"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-1.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-1.no_search_link'>
+					<div class="left ellipsis-online ellipsis-online-1">IM群聊消息究竟是存1份(即<em>扩散</em><em>读</em>)还是存多份(即<em>扩散</em><em>写</em>)？</div>
+				</a>
+			</div>
+			<div class="info-box display-flex">
+				<div class="info">
+					<a href="https://blog.csdn.net/weixin_34381687" target="_blank"><span class="blog-title">weixin_34381687的博客</span></a>
+				</div>
+				<div class="info display-flex">
+					<span class="info-block time">05-25</span>
+					<span class="info-block read"><img class="read-img" src="https://csdnimg.cn/release/blogv2/dist/pc/img/readCountWhite.png" alt="">
+					236
+					</span>
+				</div>
+			</div>
+		</div>
+		<div class="desc-box">
+			<a href="https://blog.csdn.net/weixin_34381687/article/details/89665144" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~CTRLIST~default-1.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"1","strategy":"2~default~CTRLIST~default","dest":"https://blog.csdn.net/weixin_34381687/article/details/89665144"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-1.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-1.no_search_link'>
+				<div class="desc ellipsis-online ellipsis-online-1">1、前言
+IM的群聊消息，究竟存1份（即<em>扩散</em><em>读</em>方式）还是存多份（即<em>扩散</em><em>写</em>方式）？
+上一篇文章《IM群聊消息的已<em>读</em>回执功能该怎么实现？》是说，&ldquo;很容易想到，是存一份&rdquo;，被网友们骂了，大家争论的很激烈（见下图）。
+
+
+
+
+
+
+
+网友骂的对，任何技术方案，都不是天才般灵感乍现想到的，一定是一个演进迭代，逐步优化的过...</div>
+			</a>
+		</div>
+	</div>
+</div>
+            </div>
+<a id="commentBox" name="commentBox"></a>
+<div class="comment-box">
+	<div class="comment-edit-box d-flex">
+		<a id="commentsedit"></a>
+		<div class="user-img">
+			<a href="javascript:void(0);" >
+				<img class="show_loginbox" src="https://g.csdnimg.cn/static/user-img/anonymous-User-img.png">
+			</a>
+		</div>
+		<form id="commentform">
+			<img class="comment-sofa-flag" src="https://csdnimg.cn/release/blogv2/dist/pc/img/commentFlag@2x.png">
+      <textarea class="comment-content" name="comment_content" id="comment_content" placeholder="优质评论可以帮助作者获得更高权重" maxlength="1000"></textarea>
+			<div class="comment-emoticon"><img class="comment-emoticon-img" data-url="https://csdnimg.cn/release/blogv2/dist/pc/img/" src="https://csdnimg.cn/release/blogv2/dist/pc/img/emoticon.png" alt="表情包"></div> 
+      <span class="comment-emoticon-tip">插入表情</span>
+      <div class="comment-emoticon-box">
+        <div class="comment-emoticon-img-box"></div>
+			</div>
+      <div class="opt-box">
+				<div id="ubbtools" class="add_code">
+					<a href="#insertcode" code="code" target="_self"><i class="icon iconfont icon-daima"></i></a>
+				</div>
+				<input type="hidden" id="comment_replyId" name="comment_replyId">
+				<input type="hidden" id="article_id" name="article_id" value="72550767">
+				<input type="hidden" id="comment_userId" name="comment_userId" value="">
+				<input type="hidden" id="commentId" name="commentId" value="">
+				<div class="dropdown" id="myDrap">
+					<a class="dropdown-face d-flex align-items-center" data-toggle="dropdown" role="button"
+						aria-haspopup="true" aria-expanded="false">
+						<div class="txt-selected text-truncate">添加代码片</div>
+						<svg class="icon d-block" width="200px" height="100.00px" viewBox="0 0 2048 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path  d="M597.33333292 298.666667h853.333334L1023.99999992 725.333333 597.33333292 298.666667z"  /></svg>
+					</a>
+					<ul class="dropdown-menu" id="commentCode" aria-labelledby="drop4">
+						<li><a data-code="html">HTML/XML</a></li>
+						<li><a data-code="objc">objective-c</a></li>
+						<li><a data-code="ruby">Ruby</a></li>
+						<li><a data-code="php">PHP</a></li>
+						<li><a data-code="csharp">C</a></li>
+						<li><a data-code="cpp">C++</a></li>
+						<li><a data-code="javascript">JavaScript</a></li>
+						<li><a data-code="python">Python</a></li>
+						<li><a data-code="java">Java</a></li>
+						<li><a data-code="css">CSS</a></li>
+						<li><a data-code="sql">SQL</a></li>
+						<li><a data-code="plain">其它</a></li>
+					</ul>
+				</div>
+				<div class="right-box" id="rightBox" data-type="2">
+							<span id="tip_comment" class="tip">还能输入<em>1000</em>个字符</span>
+							<a data-report-click='{"mod":"1582594662_003","spm":"1001.2101.3001.4227","ab":"new"}'><input type="submit"
+									class="btn btn-sm btn-comment" value="发表评论"></a>
+				</div>
+			</div>
+		</form>
+		<input type="button" class="bt-comment-show" value="评论">
+	</div>
+	<div class="comment-list-container">
+		<a id="comments"></a>
+		<div class="comment-list-box">
+		</div>
+		<div id="commentPage" class="pagination-box d-none"></div>
+		<div class="opt-box text-center">
+			<div class="btn btn-sm btn-link-blue" id="btnMoreComment"></div>
+		</div>
+	</div>
+</div>            <div class="recommend-box insert-baidu-box">
+                <div class="recommend-item-box clearfix" style="display:none"></div>
+<div class="recommend-item-box type_blog clearfix" data-url="https://blog.csdn.net/shenjian58/article/details/89850897"  data-report-view='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~CTRLIST~default-2.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"2","strategy":"2~default~CTRLIST~default","dest":"https://blog.csdn.net/shenjian58/article/details/89850897"}'>
+	<div class="content-box">
+		<div class="content-blog display-flex">
+			<div class="title-box">
+				<a href="https://blog.csdn.net/shenjian58/article/details/89850897" class="tit" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~CTRLIST~default-2.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"2","strategy":"2~default~CTRLIST~default","dest":"https://blog.csdn.net/shenjian58/article/details/89850897"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-2.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-2.no_search_link'>
+					<div class="left ellipsis-online ellipsis-online-1"><em>读</em><em>扩散</em>？<em>写</em><em>扩散</em>？推拉架构一文搞定！</div>
+				</a>
+			</div>
+			<div class="info-box display-flex">
+				<div class="info">
+					<a href="https://blog.csdn.net/shenjian58" target="_blank"><span class="blog-title">shenjian58的博客</span></a>
+				</div>
+				<div class="info display-flex">
+					<span class="info-block time">02-01</span>
+					<span class="info-block read"><img class="read-img" src="https://csdnimg.cn/release/blogv2/dist/pc/img/readCountWhite.png" alt="">
+					1611
+					</span>
+				</div>
+			</div>
+		</div>
+		<div class="desc-box">
+			<a href="https://blog.csdn.net/shenjian58/article/details/89850897" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~CTRLIST~default-2.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"2","strategy":"2~default~CTRLIST~default","dest":"https://blog.csdn.net/shenjian58/article/details/89850897"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-2.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-2.no_search_link'>
+				<div class="desc ellipsis-online ellipsis-online-1">今年花了一些笔墨<em>写</em>推拉系统架构：系统通知，推送还是拉取？状态同步，推送还是拉取？网页消息，推送还是拉取？群已<em>读</em>回执，推送还是拉取？（这个diao）群消息，存一份还是多份？...</div>
+			</a>
+		</div>
+	</div>
+</div>
+<div class="recommend-item-box type_blog clearfix" data-url="https://blog.csdn.net/hellojackjiang2011/article/details/118900476"  data-report-view='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~CTRLIST~default-3.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"3","strategy":"2~default~CTRLIST~default","dest":"https://blog.csdn.net/hellojackjiang2011/article/details/118900476"}'>
+	<div class="content-box">
+		<div class="content-blog display-flex">
+			<div class="title-box">
+				<a href="https://blog.csdn.net/hellojackjiang2011/article/details/118900476" class="tit" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~CTRLIST~default-3.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"3","strategy":"2~default~CTRLIST~default","dest":"https://blog.csdn.net/hellojackjiang2011/article/details/118900476"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-3.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-3.no_search_link'>
+					<div class="left ellipsis-online ellipsis-online-1">企业微信的IM架构设计揭秘：消息模型、万人群、已<em>读</em>回执、消息撤回等</div>
+					<div class="tag">最新发布</div>
+				</a>
+			</div>
+			<div class="info-box display-flex">
+				<div class="info">
+					<a href="https://blog.csdn.net/hellojackjiang2011" target="_blank"><span class="blog-title">hellojackjiang2011的博客</span></a>
+				</div>
+				<div class="info display-flex">
+					<span class="info-block time">07-19</span>
+					<span class="info-block read"><img class="read-img" src="https://csdnimg.cn/release/blogv2/dist/pc/img/readCountWhite.png" alt="">
+					239
+					</span>
+				</div>
+			</div>
+		</div>
+		<div class="desc-box">
+			<a href="https://blog.csdn.net/hellojackjiang2011/article/details/118900476" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~CTRLIST~default-3.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"3","strategy":"2~default~CTRLIST~default","dest":"https://blog.csdn.net/hellojackjiang2011/article/details/118900476"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-3.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-3.no_search_link'>
+				<div class="desc ellipsis-online ellipsis-online-1">本文作者潘唐磊，腾讯WXG（微信事业群）开发工程师，毕业于中山大学。内容有修订。
+
+1、内容概述
+
+本文总结了企业微信的IM消息系统架构设计，阐述了企业业务给IM架构设计带来的技术难点和挑战，以及技术方案的对比与分析。同时总结了IM后台开发的一些常用手段，适用于IM消息系统。
+
+
+
+*推荐阅<em>读</em>：企业微信团队分享的另一篇《企业微信客户端中组织架构数据的同步更新方案优化实战》也值得一<em>读</em>。
+
+学习交流：
+
+
+- 即时通讯/推送技术开发交流5群：215477170[推荐]
+
+- 移动端IM开发入门文章：《新手入..</div>
+			</a>
+		</div>
+	</div>
+</div>
+		<dl id="recommend-item-box-tow" class="recommend-item-box type_blog clearfix">
+			
+		</dl>
+<div class="recommend-item-box type_download clearfix" data-url="https://download.csdn.net/download/hyy80688/10450894"  data-report-view='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-download-2~default~CTRLIST~default-4.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"4","strategy":"2~default~CTRLIST~default","dest":"https://download.csdn.net/download/hyy80688/10450894"}'>
+	<div class="content-box">
+		<div class="content-blog display-flex">
+			<div class="title-box">
+				<a href="https://download.csdn.net/download/hyy80688/10450894" class="tit" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-download-2~default~CTRLIST~default-4.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"4","strategy":"2~default~CTRLIST~default","dest":"https://download.csdn.net/download/hyy80688/10450894"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-download-2%7Edefault%7ECTRLIST%7Edefault-4.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-download-2%7Edefault%7ECTRLIST%7Edefault-4.no_search_link'>
+					<div class="left ellipsis-online ellipsis-online-1">feed流拉取，<em>读</em><em>扩散</em></div>
+				</a>
+			</div>
+			<div class="info-box display-flex">
+				<div class="info display-flex">
+					<span class="info-block">05-31</span>
+				</div>
+			</div>
+		</div>
+		<div class="desc-box">
+			<a href="https://download.csdn.net/download/hyy80688/10450894" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-download-2~default~CTRLIST~default-4.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"4","strategy":"2~default~CTRLIST~default","dest":"https://download.csdn.net/download/hyy80688/10450894"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-download-2%7Edefault%7ECTRLIST%7Edefault-4.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-download-2%7Edefault%7ECTRLIST%7Edefault-4.no_search_link'>
+				<div class="desc ellipsis-online ellipsis-online-1">优点：
+&bull; 存储结构简单，数据存储量较小，关系数据与feed数据都只存一份
+&bull; 取消关注，发布feed的业务流程非常简单
+&bull; 存储结构，业务流程都比较容易<em>理解</em>，非常适合项目早期用户量、数据量、并发量不大时的快速实现
+缺点也显而易见：
+&bull; 拉取朋友圈feed流列表的业务流程非常复杂
+&bull; 有多次数据访问，并且要进行大量的内存计算，大量数据的网络传输，性能较低</div>
+			</a>
+		</div>
+	</div>
+</div>
+<div class="recommend-item-box type_blog clearfix" data-url="https://blog.csdn.net/u014630623/article/details/106276566"  data-report-view='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromBaidu~default-5.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"5","strategy":"2~default~BlogCommendFromBaidu~default","dest":"https://blog.csdn.net/u014630623/article/details/106276566"}'>
+	<div class="content-box">
+		<div class="content-blog display-flex">
+			<div class="title-box">
+				<a href="https://blog.csdn.net/u014630623/article/details/106276566" class="tit" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromBaidu~default-5.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"5","strategy":"2~default~BlogCommendFromBaidu~default","dest":"https://blog.csdn.net/u014630623/article/details/106276566"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-5.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-5.no_search_link'>
+					<div class="left ellipsis-online ellipsis-online-1"><em>读</em><em>扩散</em>与<em>写</em><em>扩散</em>分析</div>
+				</a>
+			</div>
+			<div class="info-box display-flex">
+				<div class="info">
+					<a href="https://blog.csdn.net/u014630623" target="_blank"><span class="blog-title">langzi989的专栏</span></a>
+				</div>
+				<div class="info display-flex">
+					<span class="info-block time">05-22</span>
+					<span class="info-block read"><img class="read-img" src="https://csdnimg.cn/release/blogv2/dist/pc/img/readCountWhite.png" alt="">
+					1262
+					</span>
+				</div>
+			</div>
+		</div>
+		<div class="desc-box">
+			<a href="https://blog.csdn.net/u014630623/article/details/106276566" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromBaidu~default-5.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"5","strategy":"2~default~BlogCommendFromBaidu~default","dest":"https://blog.csdn.net/u014630623/article/details/106276566"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-5.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-5.no_search_link'>
+				<div class="desc ellipsis-online ellipsis-online-1"><em>写</em><em>扩散</em>与<em>读</em><em>扩散</em>的概念常见于feeds流类型的业务中的数据<em>写</em>入和数据<em>读</em>取的流程。下面用两张图简单说明一下<em>读</em><em>扩散</em>和<em>写</em><em>扩散</em>分别是什么。
+<em>写</em><em>扩散</em>
+
+<em>读</em><em>扩散</em>
+
+从上面的<em>读</em><em>写</em><em>扩散</em>的流程我们可以分析出<em>读</em><em>写</em><em>扩散</em>分别具有哪些优缺点。
+
+<em>写</em><em>扩散</em>的优点：
+
+1、控制逻辑和数据<em>读</em>取逻辑简单
+2、粉丝数据独立，方便粉丝内容定制化推荐。
+3、大V数据丢失，对关注者数据影响不大，关注者依然可以正常<em>读</em>取关注者发布的数据内容。
+
+
+<em>写</em><em>扩散</em>的缺点：
+
+1、浪费存储成本
+2、<em>写</em><em>扩散</em>需要使用专门的<em>扩散</em>队列
+3、数据实时性较差。（要等待数据<em>扩散</em>完才</div>
+			</a>
+		</div>
+	</div>
+</div>
+<div class="recommend-item-box type_blog clearfix" data-url="https://blog.csdn.net/weixin_43314519/article/details/118073396"  data-report-view='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromBaidu~default-6.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"6","strategy":"2~default~BlogCommendFromBaidu~default","dest":"https://blog.csdn.net/weixin_43314519/article/details/118073396"}'>
+	<div class="content-box">
+		<div class="content-blog display-flex">
+			<div class="title-box">
+				<a href="https://blog.csdn.net/weixin_43314519/article/details/118073396" class="tit" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromBaidu~default-6.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"6","strategy":"2~default~BlogCommendFromBaidu~default","dest":"https://blog.csdn.net/weixin_43314519/article/details/118073396"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-6.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-6.no_search_link'>
+					<div class="left ellipsis-online ellipsis-online-1">什么是<em>读</em>、<em>写</em><em>扩散</em>？</div>
+				</a>
+			</div>
+			<div class="info-box display-flex">
+				<div class="info">
+					<a href="https://blog.csdn.net/weixin_43314519" target="_blank"><span class="blog-title">Viper的程序员修炼手册</span></a>
+				</div>
+				<div class="info display-flex">
+					<span class="info-block time">06-20</span>
+					<span class="info-block read"><img class="read-img" src="https://csdnimg.cn/release/blogv2/dist/pc/img/readCountWhite.png" alt="">
+					105
+					</span>
+				</div>
+			</div>
+		</div>
+		<div class="desc-box">
+			<a href="https://blog.csdn.net/weixin_43314519/article/details/118073396" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromBaidu~default-6.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"6","strategy":"2~default~BlogCommendFromBaidu~default","dest":"https://blog.csdn.net/weixin_43314519/article/details/118073396"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-6.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-6.no_search_link'>
+				<div class="desc ellipsis-online ellipsis-online-1">什么是<em>读</em>、<em>写</em><em>扩散</em>？
+<em>读</em><em>写</em><em>扩散</em>的概念
+inbox: 收件箱，你收到的消息，即你所关注的人发布的消息。
+outbox: 发件箱，你发布的消息。
+<em>写</em><em>扩散</em>(Push)
+该方式为每个用户维护一个订阅列表，记录该用户订阅的消息索引（一般为消息ID、类型、发表时间等一些元数据）。每当用户发布消息时，都会去更新其follower的订阅列表。
+优点：<em>读</em>很轻。初始化时仅需要<em>读</em>取自己的inbox即可。
+缺点：<em>写</em>很重。每发布一个消息，会导致大量的<em>写</em>操作。
+注：一般来说，用户发布消息，并不会更新所有followers的订阅列表，仅更</div>
+			</a>
+		</div>
+	</div>
+</div>
+<div class="recommend-item-box type_blog clearfix" data-url="https://blog.csdn.net/Never__give__up/article/details/99286460"  data-report-view='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromBaidu~default-7.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"7","strategy":"2~default~BlogCommendFromBaidu~default","dest":"https://blog.csdn.net/Never__give__up/article/details/99286460"}'>
+	<div class="content-box">
+		<div class="content-blog display-flex">
+			<div class="title-box">
+				<a href="https://blog.csdn.net/Never__give__up/article/details/99286460" class="tit" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromBaidu~default-7.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"7","strategy":"2~default~BlogCommendFromBaidu~default","dest":"https://blog.csdn.net/Never__give__up/article/details/99286460"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-7.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-7.no_search_link'>
+					<div class="left ellipsis-online ellipsis-online-1"><em>读</em><em>扩散</em>与<em>写</em><em>扩散</em></div>
+				</a>
+			</div>
+			<div class="info-box display-flex">
+				<div class="info">
+					<a href="https://blog.csdn.net/Never__give__up" target="_blank"><span class="blog-title">Never__give__up的博客</span></a>
+				</div>
+				<div class="info display-flex">
+					<span class="info-block time">08-12</span>
+					<span class="info-block read"><img class="read-img" src="https://csdnimg.cn/release/blogv2/dist/pc/img/readCountWhite.png" alt="">
+					863
+					</span>
+				</div>
+			</div>
+		</div>
+		<div class="desc-box">
+			<a href="https://blog.csdn.net/Never__give__up/article/details/99286460" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromBaidu~default-7.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"7","strategy":"2~default~BlogCommendFromBaidu~default","dest":"https://blog.csdn.net/Never__give__up/article/details/99286460"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-7.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-7.no_search_link'>
+				<div class="desc ellipsis-online ellipsis-online-1">哪些产品是feed流典型业务？
+
+答：微博，微信朋友圈，Pinterest是典型的feed流业务，系统中的每一条消息就是一个feed。
+
+这类业务的特点是：
+
+
+	有好友关系，例如关注，粉丝
+	
+	
+	我们的主页由别人发布的feed组成
+	
+这类业务的典型动作是：
+
+
+	关注，取关
+	
+	
+	发布feed
+	
+	
+	拉取自己的主页feed流
+	
+这类业务的核心元数据是：
+
+
+	关系数据
+	
+	
+	...</div>
+			</a>
+		</div>
+	</div>
+</div>
+<div class="recommend-item-box type_blog clearfix" data-url="https://xiaomaweifu.blog.csdn.net/article/details/79470638"  data-report-view='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromBaidu~default-8.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"8","strategy":"2~default~BlogCommendFromBaidu~default","dest":"https://xiaomaweifu.blog.csdn.net/article/details/79470638"}'>
+	<div class="content-box">
+		<div class="content-blog display-flex">
+			<div class="title-box">
+				<a href="https://xiaomaweifu.blog.csdn.net/article/details/79470638" class="tit" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromBaidu~default-8.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"8","strategy":"2~default~BlogCommendFromBaidu~default","dest":"https://xiaomaweifu.blog.csdn.net/article/details/79470638"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-8.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-8.no_search_link'>
+					<div class="left ellipsis-online ellipsis-online-1">微信后台架构浅析--<em>读</em><em>写</em><em>扩散</em>技术</div>
+				</a>
+			</div>
+			<div class="info-box display-flex">
+				<div class="info">
+					<a href="https://blog.csdn.net/lyztyycode" target="_blank"><span class="blog-title">lyztyycode的博客</span></a>
+				</div>
+				<div class="info display-flex">
+					<span class="info-block time">03-09</span>
+					<span class="info-block read"><img class="read-img" src="https://csdnimg.cn/release/blogv2/dist/pc/img/readCountWhite.png" alt="">
+					7252
+					</span>
+				</div>
+			</div>
+		</div>
+		<div class="desc-box">
+			<a href="https://xiaomaweifu.blog.csdn.net/article/details/79470638" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromBaidu~default-8.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"8","strategy":"2~default~BlogCommendFromBaidu~default","dest":"https://xiaomaweifu.blog.csdn.net/article/details/79470638"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-8.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-8.no_search_link'>
+				<div class="desc ellipsis-online ellipsis-online-1">首先我<em>写</em>这篇博客所要探讨的问题是什么，自己查询资料得出的结论或者<em>理解</em>记录下来，产生了这篇博客问题背景：&nbsp; &nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp; 我相信现在几乎我们每个人都在使用微信，那么你知道微信平台每天的信息量有多大吗？2017年微信官方在知名论坛上公布了其今年9月平均日登陆用户达9.02亿，同比增长17%。你在这9亿人里吗？每天有如此多的用户使用微信，你能想象到每天发送多少微信消息呢？380亿！是不是很吃惊...</div>
+			</a>
+		</div>
+	</div>
+</div>
+<div class="recommend-item-box type_download clearfix" data-url="http://download.csdn.net/download/weixin_38670707/12823521"  data-report-view='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-download-2~default~CTRLIST~default-9.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"9","strategy":"2~default~CTRLIST~default","dest":"http://download.csdn.net/download/weixin_38670707/12823521"}'>
+	<div class="content-box">
+		<div class="content-blog display-flex">
+			<div class="title-box">
+				<a href="http://download.csdn.net/download/weixin_38670707/12823521" class="tit" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-download-2~default~CTRLIST~default-9.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"9","strategy":"2~default~CTRLIST~default","dest":"http://download.csdn.net/download/weixin_38670707/12823521"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-download-2%7Edefault%7ECTRLIST%7Edefault-9.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-download-2%7Edefault%7ECTRLIST%7Edefault-9.no_search_link'>
+					<div class="left ellipsis-online ellipsis-online-1">解决大于5.7版本mysql的分组报错Expression #1 of SELECT list is not in GROUP BY clause and contains nonaggregated</div>
+				</a>
+			</div>
+			<div class="info-box display-flex">
+				<div class="info display-flex">
+					<span class="info-block">09-09</span>
+				</div>
+			</div>
+		</div>
+		<div class="desc-box">
+			<a href="http://download.csdn.net/download/weixin_38670707/12823521" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-download-2~default~CTRLIST~default-9.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"9","strategy":"2~default~CTRLIST~default","dest":"http://download.csdn.net/download/weixin_38670707/12823521"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-download-2%7Edefault%7ECTRLIST%7Edefault-9.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-download-2%7Edefault%7ECTRLIST%7Edefault-9.no_search_link'>
+				<div class="desc ellipsis-online ellipsis-online-1">主要介绍了解决大于5.7版本mysql的分组报错Expression #1 of SELECT list is not in GROUP BY clause and contains nonaggregated问题,需要的朋友可以参考下</div>
+			</a>
+		</div>
+	</div>
+</div>
+<div class="recommend-item-box type_download clearfix" data-url="https://download.csdn.net/download/dong_junshuai/9697714"  data-report-view='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-download-2~default~CTRLIST~default-10.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"10","strategy":"2~default~CTRLIST~default","dest":"https://download.csdn.net/download/dong_junshuai/9697714"}'>
+	<div class="content-box">
+		<div class="content-blog display-flex">
+			<div class="title-box">
+				<a href="https://download.csdn.net/download/dong_junshuai/9697714" class="tit" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-download-2~default~CTRLIST~default-10.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"10","strategy":"2~default~CTRLIST~default","dest":"https://download.csdn.net/download/dong_junshuai/9697714"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-download-2%7Edefault%7ECTRLIST%7Edefault-10.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-download-2%7Edefault%7ECTRLIST%7Edefault-10.no_search_link'>
+					<div class="left ellipsis-online ellipsis-online-1">RecyclerView加载不同布局(有间距)</div>
+				</a>
+			</div>
+			<div class="info-box display-flex">
+				<div class="info display-flex">
+					<span class="info-block">11-30</span>
+				</div>
+			</div>
+		</div>
+		<div class="desc-box">
+			<a href="https://download.csdn.net/download/dong_junshuai/9697714" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-download-2~default~CTRLIST~default-10.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"10","strategy":"2~default~CTRLIST~default","dest":"https://download.csdn.net/download/dong_junshuai/9697714"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-download-2%7Edefault%7ECTRLIST%7Edefault-10.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-download-2%7Edefault%7ECTRLIST%7Edefault-10.no_search_link'>
+				<div class="desc ellipsis-online ellipsis-online-1">RecyclerView加载不同布局(有间距)。</div>
+			</a>
+		</div>
+	</div>
+</div>
+<div class="recommend-item-box type_blog clearfix" data-url="https://blog.csdn.net/sofia1217/article/details/50779930"  data-report-view='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~CTRLIST~default-11.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"11","strategy":"2~default~CTRLIST~default","dest":"https://blog.csdn.net/sofia1217/article/details/50779930"}'>
+	<div class="content-box">
+		<div class="content-blog display-flex">
+			<div class="title-box">
+				<a href="https://blog.csdn.net/sofia1217/article/details/50779930" class="tit" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~CTRLIST~default-11.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"11","strategy":"2~default~CTRLIST~default","dest":"https://blog.csdn.net/sofia1217/article/details/50779930"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-11.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-11.no_search_link'>
+					<div class="left ellipsis-online ellipsis-online-1"><em>读</em><em>写</em><em>扩散</em>问题</div>
+				</a>
+			</div>
+			<div class="info-box display-flex">
+				<div class="info">
+					<a href="https://blog.csdn.net/sofia1217" target="_blank"><span class="blog-title">sofia1217的专栏</span></a>
+				</div>
+				<div class="info display-flex">
+					<span class="info-block time">03-02</span>
+					<span class="info-block read"><img class="read-img" src="https://csdnimg.cn/release/blogv2/dist/pc/img/readCountWhite.png" alt="">
+					2078
+					</span>
+				</div>
+			</div>
+		</div>
+		<div class="desc-box">
+			<a href="https://blog.csdn.net/sofia1217/article/details/50779930" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~CTRLIST~default-11.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"11","strategy":"2~default~CTRLIST~default","dest":"https://blog.csdn.net/sofia1217/article/details/50779930"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-11.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-11.no_search_link'>
+				<div class="desc ellipsis-online ellipsis-online-1">摘要：微专背景架构浅析&mdash;&mdash;<em>读</em>散布pull、<em>写</em>散布push、混杂形式(pushpull)&mdash;&mdash;相干cache(redis，memcache) 之前正在网上看到闭于Twitter、Sina和腾讯菲薄单薄的一些完成技巧，那个简略做个择要。 1、<em>读</em>散布]&nbsp;
+
+
+微博后台架构浅析&mdash;&mdash;<em>读</em><em>扩散</em>pull、<em>写</em><em>扩散</em>push、混合模式(push+pull)&mdash;&mdash;相关cache(redis，memcache)</div>
+			</a>
+		</div>
+	</div>
+</div>
+<div class="recommend-item-box type_blog clearfix" data-url="https://blog.csdn.net/qq_24365213/article/details/84728779"  data-report-view='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~CTRLIST~default-12.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"12","strategy":"2~default~CTRLIST~default","dest":"https://blog.csdn.net/qq_24365213/article/details/84728779"}'>
+	<div class="content-box">
+		<div class="content-blog display-flex">
+			<div class="title-box">
+				<a href="https://blog.csdn.net/qq_24365213/article/details/84728779" class="tit" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~CTRLIST~default-12.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"12","strategy":"2~default~CTRLIST~default","dest":"https://blog.csdn.net/qq_24365213/article/details/84728779"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-12.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-12.no_search_link'>
+					<div class="left ellipsis-online ellipsis-online-1">一套海量在线用户的移动端IM架构设计实践分享(含详细图文)</div>
+				</a>
+			</div>
+			<div class="info-box display-flex">
+				<div class="info">
+					<a href="https://blog.csdn.net/qq_24365213" target="_blank"><span class="blog-title">qq_24365213的博客</span></a>
+				</div>
+				<div class="info display-flex">
+					<span class="info-block time">12-02</span>
+					<span class="info-block read"><img class="read-img" src="https://csdnimg.cn/release/blogv2/dist/pc/img/readCountWhite.png" alt="">
+					482
+					</span>
+				</div>
+			</div>
+		</div>
+		<div class="desc-box">
+			<a href="https://blog.csdn.net/qq_24365213/article/details/84728779" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~CTRLIST~default-12.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"12","strategy":"2~default~CTRLIST~default","dest":"https://blog.csdn.net/qq_24365213/article/details/84728779"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-12.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-12.no_search_link'>
+				<div class="desc ellipsis-online ellipsis-online-1">摘要: https://mp.weixin.qq.com/s?__biz=MzI1ODY0NjAwMA==&amp;amp;mid=2247483756&amp;amp;idx=1&amp;amp;sn=a8e3303bc573b1acaf9ef3862ef89bdd&amp;amp;chksm=ea044bf3dd73c2e5dcf2c10202c66d6143ec866205e9230f974fbc0b0be58792669...</div>
+			</a>
+		</div>
+	</div>
+</div>
+<div class="recommend-item-box type_blog clearfix" data-url="https://blog.csdn.net/Javachichi/article/details/116668916"  data-report-view='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~CTRLIST~default-13.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"13","strategy":"2~default~CTRLIST~default","dest":"https://blog.csdn.net/Javachichi/article/details/116668916"}'>
+	<div class="content-box">
+		<div class="content-blog display-flex">
+			<div class="title-box">
+				<a href="https://blog.csdn.net/Javachichi/article/details/116668916" class="tit" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~CTRLIST~default-13.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"13","strategy":"2~default~CTRLIST~default","dest":"https://blog.csdn.net/Javachichi/article/details/116668916"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-13.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-13.no_search_link'>
+					<div class="left ellipsis-online ellipsis-online-1">阿里技术官设计的一个亿级消息量的IM系统，堪称精彩！</div>
+				</a>
+			</div>
+			<div class="info-box display-flex">
+				<div class="info">
+					<a href="https://blog.csdn.net/Javachichi" target="_blank"><span class="blog-title">Javachichi的博客</span></a>
+				</div>
+				<div class="info display-flex">
+					<span class="info-block time">05-11</span>
+					<span class="info-block read"><img class="read-img" src="https://csdnimg.cn/release/blogv2/dist/pc/img/readCountWhite.png" alt="">
+					147
+					</span>
+				</div>
+			</div>
+		</div>
+		<div class="desc-box">
+			<a href="https://blog.csdn.net/Javachichi/article/details/116668916" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~CTRLIST~default-13.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"13","strategy":"2~default~CTRLIST~default","dest":"https://blog.csdn.net/Javachichi/article/details/116668916"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-13.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-13.no_search_link'>
+				<div class="desc ellipsis-online ellipsis-online-1">前言
+本文不会给出一套通用的IM方案，也不会评判某种架构的好坏，而是讨论设计IM系统的常见难题跟业界的解决方案。因为也没有所谓的通用方案，不同的解决方案都有其优缺点，只有最满足业务需要的系统才是一个好的系统。而且，在有限的人力、物力跟时间资源下，通常需要做出很多权衡，此时，一个能够快速迭代、方便扩展的系统才是一个好的系统。
+IM核心概念
+用户：系统的使用者
+消息：是指用户之间的沟通内容。通常在IM系统中，消息会有以下几类：文本消息、表情消息、图片消息、视频消息、文件消息等等
+会话：通常指两个用户之间因聊天而</div>
+			</a>
+		</div>
+	</div>
+</div>
+<div class="recommend-item-box type_blog clearfix" data-url="https://blog.csdn.net/kindy1022/article/details/6438989"  data-report-view='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromBaidu~default-14.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"14","strategy":"2~default~BlogCommendFromBaidu~default","dest":"https://blog.csdn.net/kindy1022/article/details/6438989"}'>
+	<div class="content-box">
+		<div class="content-blog display-flex">
+			<div class="title-box">
+				<a href="https://blog.csdn.net/kindy1022/article/details/6438989" class="tit" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromBaidu~default-14.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"14","strategy":"2~default~BlogCommendFromBaidu~default","dest":"https://blog.csdn.net/kindy1022/article/details/6438989"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-14.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-14.no_search_link'>
+					<div class="left ellipsis-online ellipsis-online-1">微薄后台架构浅析</div>
+				</a>
+			</div>
+			<div class="info-box display-flex">
+				<div class="info">
+					<a href="https://blog.csdn.net/kindy1022" target="_blank"><span class="blog-title">kindy的开发工作室</span></a>
+				</div>
+				<div class="info display-flex">
+					<span class="info-block time">05-23</span>
+					<span class="info-block read"><img class="read-img" src="https://csdnimg.cn/release/blogv2/dist/pc/img/readCountWhite.png" alt="">
+					982
+					</span>
+				</div>
+			</div>
+		</div>
+		<div class="desc-box">
+			<a href="https://blog.csdn.net/kindy1022/article/details/6438989" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromBaidu~default-14.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"14","strategy":"2~default~BlogCommendFromBaidu~default","dest":"https://blog.csdn.net/kindy1022/article/details/6438989"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-14.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-14.no_search_link'>
+				<div class="desc ellipsis-online ellipsis-online-1">来自：http://apan.me/之前在网上看到关于Twitter、Sina以及腾讯微薄的一些实现技术，这个简单做个摘要。1、<em>读</em><em>扩散</em>还是<em>写</em><em>扩散</em>？inbox: 收件箱，你收到的消息，即你所关注的人发布的消息。outbox: 发件箱，你发布的消息。<em>写</em><em>扩散</em>(Push)该方式为每个用户维护一个订阅列表，记录该用户订阅的消息索引（一般为消息ID、类型、发表时间等一些元数据）。每当用户发布消息时，都会去更新其follower的订阅列表。优点：<em>读</em>很轻。初始化时仅需要<em>读</em>取自己的inbox即可。缺点：<em>写</em>很重。每发布一个消息</div>
+			</a>
+		</div>
+	</div>
+</div>
+<div class="recommend-item-box type_blog clearfix" data-url="https://blog.csdn.net/weixin_30677475/article/details/98505765"  data-report-view='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromBaidu~default-15.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"15","strategy":"2~default~BlogCommendFromBaidu~default","dest":"https://blog.csdn.net/weixin_30677475/article/details/98505765"}'>
+	<div class="content-box">
+		<div class="content-blog display-flex">
+			<div class="title-box">
+				<a href="https://blog.csdn.net/weixin_30677475/article/details/98505765" class="tit" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromBaidu~default-15.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"15","strategy":"2~default~BlogCommendFromBaidu~default","dest":"https://blog.csdn.net/weixin_30677475/article/details/98505765"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-15.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-15.no_search_link'>
+					<div class="left ellipsis-online ellipsis-online-1">系统通知</div>
+				</a>
+			</div>
+			<div class="info-box display-flex">
+				<div class="info">
+					<a href="https://blog.csdn.net/weixin_30677475" target="_blank"><span class="blog-title">weixin_30677475的博客</span></a>
+				</div>
+				<div class="info display-flex">
+					<span class="info-block time">05-11</span>
+					<span class="info-block read"><img class="read-img" src="https://csdnimg.cn/release/blogv2/dist/pc/img/readCountWhite.png" alt="">
+					117
+					</span>
+				</div>
+			</div>
+		</div>
+		<div class="desc-box">
+			<a href="https://blog.csdn.net/weixin_30677475/article/details/98505765" target="_blank"  data-report-click='{"ab":"new","mod":"popu_387","extra":"{\"utm_medium\":\"distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromBaidu~default-15.no_search_link\",\"dist_request_id\":\"1632561069700_80633\"}","dist_request_id":"1632561069700_80633","ab_strategy":"ctrlist","index":"15","strategy":"2~default~BlogCommendFromBaidu~default","dest":"https://blog.csdn.net/weixin_30677475/article/details/98505765"}'  data-report-query='utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-15.no_search_link&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7Edefault-15.no_search_link'>
+				<div class="desc ellipsis-online ellipsis-online-1">任何脱离业务场景的架构设计都是耍流氓。
+
+广义系统通知，有1对1的通知，以及一对多的通知，有相对实时的业务通知，以及能够容忍一定延时的系统通知。结合具体的场景来看下，这样的一些系统通知，究竟是推还是拉？
+
+一、系统对1的通知
+典型业务，计数类通知：
+
+
+有10个美女添加了你为好友
+
+
+有8个好友私信了你
+
+
+很多业务经常有这类计数通知，通知结果只针对你，这类通知是推...</div>
+			</a>
+		</div>
+	</div>
+</div>
+            </div>
+            <div class="template-box">
+                <span>©️2020 CSDN</span>
+                <span>皮肤主题: 大白</span>
+                <span> 设计师:CSDN官方博客</span>
+                <span>
+                    <a href="https://blog.csdn.net/" class="back-home c-blue c-blue-hover c-blue-focus">返回首页</a>
+                </span>
+            </div>
+<div class="blog-footer-bottom" style="margin-top:10px;"></div>
+<script src="https://g.csdnimg.cn/common/csdn-footer/csdn-footer.js" data-isfootertrack="false" type="text/javascript"></script>
+<script type="text/javascript">
+    window.csdn.csdnFooter.options = {
+        el: '.blog-footer-bottom',
+        type: 2
+    }
+</script>        </main>
+<aside class="blog_container_aside">
+	<div id="asideProfile" class="aside-box">
+    <div class="profile-intro d-flex">
+        <div class="avatar-box d-flex justify-content-center flex-column">
+            <a href="https://blog.csdn.net/AAA821" data-report-click='{"mod":"popu_379","spm":"1001.2101.3001.4121","dest":"https://blog.csdn.net/AAA821","ab":"new"}'>
+                <img src="https://profile.csdnimg.cn/D/1/5/3_aaa821" class="avatar_pic">
+            </a>
+        </div>
+        <div class="user-info d-flex flex-column profile-intro-name-box">
+            <div class="profile-intro-name-boxTop">
+                <a href="https://blog.csdn.net/AAA821" class="" id="uid" title="AAA821" data-report-click='{"mod":"popu_379","spm":"1001.2101.3001.4122","dest":"https://blog.csdn.net/AAA821","ab":"new"}'>
+                    <span class="name " username="AAA821">AAA821</span>
+                </a>
+                <span>
+                </span>
+                <span class="flag expert-blog">
+                <span class="bubble">CSDN认证博客专家</span>
+                </span>
+                <span class="flag company-blog">
+                <span class="bubble">CSDN认证企业博客</span>
+                </span>
+            </div>
+            <div class="profile-intro-name-boxFooter">
+                <span class="personal-home-page personal-home-years">码龄9年</span>
+                    <span class="personal-home-page">
+                    <a class="personal-home-certification" href="https://i.csdn.net/#/uc/profile?utm_source=14998968" target="_blank" title="暂无认证">
+                    <img src="https://csdnimg.cn/identity/nocErtification.png" alt="">
+                    暂无认证
+                    </a>
+                    </span>
+            </div>
+        </div>
+    </div>
+    <div class="data-info d-flex item-tiling">
+        <dl class="text-center" title="52">
+            <a href="https://blog.csdn.net/AAA821" data-report-click='{"mod":"1598321000_001","spm":"1001.2101.3001.4310"}' data-report-query="t=1">  
+                <dt><span class="count">52</span></dt>
+                <dd class="font">原创</dd>
+            </a>
+        </dl>
+        <dl class="text-center" data-report-click='{"mod":"1598321000_002","spm":"1001.2101.3001.4311"}' title="31159">
+            <a href="https://blog.csdn.net/rank/list/weekly" target="_blank">
+                <dt><span class="count">3万+</span></dt>
+                <dd class="font">周排名</dd>
+            </a>
+        </dl>
+        <dl class="text-center" title="16003">
+            <a href="https://blog.csdn.net/rank/list/total" data-report-click='{"mod":"1598321000_003","spm":"1001.2101.3001.4312"}' target="_blank">
+                <dt><span class="count">1万+</span></dt>
+                <dd class="font">总排名</dd>
+            </a>
+        </dl>
+        <dl class="text-center" style="min-width:58px" title="249893">  
+            <dt><span class="count">24万+</span></dt>
+            <dd>访问</dd>
+        </dl>
+        <dl class="text-center" title="5级,点击查看等级说明">
+            <dt><a href="https://blog.csdn.net/blogdevteam/article/details/103478461" target="_blank">
+                <img class="level" src="https://csdnimg.cn/identity/blog5.png">
+            </a>
+            </dt>
+            <dd>等级</dd>
+        </dl>
+    </div>
+    <div class="item-rank"></div>
+    <div class="data-info d-flex item-tiling">
+        <dl class="text-center" title="2650">
+            <dt><span class="count">2650</span></dt>
+            <dd>积分</dd>
+        </dl>
+         <dl class="text-center" id="fanBox" title="18">
+            <dt><span class="count" id="fan">18</span></dt>
+            <dd>粉丝</dd>
+        </dl>
+        <dl class="text-center" title="45">
+            <dt><span class="count">45</span></dt>
+            <dd>获赞</dd>
+        </dl>
+        <dl class="text-center" title="31">
+            <dt><span class="count">31</span></dt>
+            <dd>评论</dd>
+        </dl>
+        <dl class="text-center" title="163">
+            <dt><span class="count">163</span></dt>
+            <dd>收藏</dd>
+        </dl>
+    </div>
+    <div class="aside-box-footer" data-report-view='{"spm":"3001.4296"}'>
+        <div class="badge-box d-flex">
+            <div class="badge d-flex">
+                <div class="icon-badge" title="新人勋章">
+                    <div class="mouse-box">
+                        <img class="medal-img" data-report-click='{"spm":"3001.4296"}' src="https://csdnimg.cn/medal/blinknewcomer@240.png" alt="新人勋章">
+                    </div>
+                </div>
+                <div class="icon-badge" title="阅读者勋章Lv1">
+                    <div class="mouse-box">
+                        <img class="medal-img" data-report-click='{"spm":"3001.4296"}' src="https://csdnimg.cn/medal/yuedu3@240.png" alt="阅读者勋章Lv1">
+                    </div>
+                </div>
+                <div class="icon-badge" title="1024勋章">
+                    <div class="mouse-box">
+                        <img class="medal-img" data-report-click='{"spm":"3001.4296"}' src="https://csdnimg.cn/medal/1024@240.png" alt="1024勋章">
+                    </div>
+                </div>
+                <div class="icon-badge" title="勤写标兵Lv1">
+                    <div class="mouse-box">
+                        <img class="medal-img" data-report-click='{"spm":"3001.4296"}' src="https://csdnimg.cn/medal/qixiebiaobing1@240.png" alt="勤写标兵Lv1">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="profile-intro-name-boxOpration">
+        <div class="opt-letter-watch-box">
+        <a class="bt-button personal-letter" href="https://im.csdn.net/chat/AAA821" target="_blank" rel="noopener">私信</a>
+        </div>
+        <div class="opt-letter-watch-box"> 
+            <a class="personal-watch bt-button" id="btnAttent" >关注</a>  
+        </div>
+    </div>
+</div>
+<div id="asideSearchArticle" class="aside-box">
+	<div class="aside-content search-comter">
+    <div class="aside-search aside-search-blog">         
+        <input type="text" class="input-serch-blog" name="" autocomplete="off" value="" id="search-blog-words" placeholder="搜博主文章">
+        <a class="btn-search-blog">
+                    <img src="//csdnimg.cn/cdn/content-toolbar/csdn-sou.png?v=1587021042">
+        </a>
+    </div>
+    </div>
+</div>
+
+
+<div id="asideHotArticle" class="aside-box">
+	<h3 class="aside-title">热门文章</h3>
+	<div class="aside-content">
+		<ul class="hotArticle-list">
+			<li>
+				<a href="https://blog.csdn.net/AAA821/article/details/81017704" target="_blank"  data-report-click='{"mod":"popu_541","spm":"1001.2101.3001.4139","dest":"https://blog.csdn.net/AAA821/article/details/81017704","ab":"new"}'>
+				Mysql中的GAP锁(间隙锁)
+					<img src="https://csdnimg.cn/release/blogv2/dist/pc/img/readCountWhite.png" alt="">
+					<span class="read">18399</span>
+                </a>
+			</li>
+			<li>
+				<a href="https://blog.csdn.net/AAA821/article/details/72550767" target="_blank"  data-report-click='{"mod":"popu_541","spm":"1001.2101.3001.4139","dest":"https://blog.csdn.net/AAA821/article/details/72550767","ab":"new"}'>
+				读扩散和写扩散的理解
+					<img src="https://csdnimg.cn/release/blogv2/dist/pc/img/readCountWhite.png" alt="">
+					<span class="read">14649</span>
+                </a>
+			</li>
+			<li>
+				<a href="https://blog.csdn.net/AAA821/article/details/70919905" target="_blank"  data-report-click='{"mod":"popu_541","spm":"1001.2101.3001.4139","dest":"https://blog.csdn.net/AAA821/article/details/70919905","ab":"new"}'>
+				利用百度地图API实现百度地图坐标拾取
+					<img src="https://csdnimg.cn/release/blogv2/dist/pc/img/readCountWhite.png" alt="">
+					<span class="read">9009</span>
+                </a>
+			</li>
+			<li>
+				<a href="https://blog.csdn.net/AAA821/article/details/82930679" target="_blank"  data-report-click='{"mod":"popu_541","spm":"1001.2101.3001.4139","dest":"https://blog.csdn.net/AAA821/article/details/82930679","ab":"new"}'>
+				Redis的性能瓶颈
+					<img src="https://csdnimg.cn/release/blogv2/dist/pc/img/readCountWhite.png" alt="">
+					<span class="read">8795</span>
+                </a>
+			</li>
+			<li>
+				<a href="https://blog.csdn.net/AAA821/article/details/78095769" target="_blank"  data-report-click='{"mod":"popu_541","spm":"1001.2101.3001.4139","dest":"https://blog.csdn.net/AAA821/article/details/78095769","ab":"new"}'>
+				出现In aggregated query without GROUP BY原因
+					<img src="https://csdnimg.cn/release/blogv2/dist/pc/img/readCountWhite.png" alt="">
+					<span class="read">8573</span>
+                </a>
+			</li>
+		</ul>
+	</div>
+</div>
+<div id="asideCategory" class="aside-box flexible-box">
+    <h3 class="aside-title">分类专栏</h3>
+    <div class="aside-content">
+        <ul>
+            <li class="">
+                <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_11174949.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_11174949.html","ab":"new"}'>
+                    <img src="https://img-blog.csdnimg.cn/20201014180756928.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                    <span class="title oneline">
+                        <span class="text">openresty</span>
+                    </span>
+                    <span class="count float-right">1篇</span>
+                </a>
+            </li>
+            <li class="">
+                <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_11134595.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_11134595.html","ab":"new"}'>
+                    <img src="https://img-blog.csdnimg.cn/20201014180756780.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                    <span class="title oneline">
+                        <span class="text">hadoop</span>
+                    </span>
+                    <span class="count float-right">6篇</span>
+                </a>
+            </li>
+            <li class="">
+                <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_11134741.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_11134741.html","ab":"new"}'>
+                    <img src="https://img-blog.csdnimg.cn/20201014180756928.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                    <span class="title oneline">
+                        <span class="text">hive</span>
+                    </span>
+                </a>
+            </li>
+            <li class="">
+                <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_9620163.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_9620163.html","ab":"new"}'>
+                    <img src="https://img-blog.csdnimg.cn/20201014180756927.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                    <span class="title oneline">
+                        <span class="text">Socket</span>
+                    </span>
+                    <span class="count float-right">4篇</span>
+                </a>
+            </li>
+            <li class="">
+                <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_9522073.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_9522073.html","ab":"new"}'>
+                    <img src="https://img-blog.csdnimg.cn/20201014180756916.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                    <span class="title oneline">
+                        <span class="text">Mongodb</span>
+                    </span>
+                    <span class="count float-right">1篇</span>
+                </a>
+            </li>
+            <li class="">
+                <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_6970218.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_6970218.html","ab":"new"}'>
+                    <img src="https://img-blog.csdnimg.cn/20201014180756738.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                    <span class="title oneline">
+                        <span class="text">JAVA基础</span>
+                    </span>
+                    <span class="count float-right">49篇</span>
+                </a>
+            </li>
+            <li class="">
+                <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_6970219.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_6970219.html","ab":"new"}'>
+                    <img src="https://img-blog.csdnimg.cn/20201014180756724.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                    <span class="title oneline">
+                        <span class="text">多线程理解</span>
+                    </span>
+                    <span class="count float-right">5篇</span>
+                </a>
+            </li>
+            <li class="">
+                <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_6970221.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_6970221.html","ab":"new"}'>
+                    <img src="https://img-blog.csdnimg.cn/20201014180756928.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                    <span class="title oneline">
+                        <span class="text">Java内存</span>
+                    </span>
+                </a>
+            </li>
+            <li class="">
+                <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_6970223.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_6970223.html","ab":"new"}'>
+                    <img src="https://img-blog.csdnimg.cn/20201014180756927.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                    <span class="title oneline">
+                        <span class="text">Mysql</span>
+                    </span>
+                    <span class="count float-right">18篇</span>
+                </a>
+            </li>
+            <li class="">
+                <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_6970224.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_6970224.html","ab":"new"}'>
+                    <img src="https://img-blog.csdnimg.cn/20201014180756925.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                    <span class="title oneline">
+                        <span class="text">Oracle</span>
+                    </span>
+                </a>
+            </li>
+            <li class="">
+                <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_6970225.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_6970225.html","ab":"new"}'>
+                    <img src="https://img-blog.csdnimg.cn/20201014180756925.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                    <span class="title oneline">
+                        <span class="text">第三方API调用</span>
+                    </span>
+                </a>
+            </li>
+            <li class="">
+                <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_6970239.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_6970239.html","ab":"new"}'>
+                    <img src="https://img-blog.csdnimg.cn/20201014180756724.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                    <span class="title oneline">
+                        <span class="text">队列</span>
+                    </span>
+                    <span class="count float-right">1篇</span>
+                </a>
+            </li>
+            <li class="">
+                <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_6981473.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_6981473.html","ab":"new"}'>
+                    <img src="https://img-blog.csdnimg.cn/20201014180756916.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                    <span class="title oneline">
+                        <span class="text">遇到的问题</span>
+                    </span>
+                    <span class="count float-right">7篇</span>
+                </a>
+            </li>
+            <li class="">
+                <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_7034548.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_7034548.html","ab":"new"}'>
+                    <img src="https://img-blog.csdnimg.cn/20201014180756923.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                    <span class="title oneline">
+                        <span class="text">TCP</span>
+                    </span>
+                    <span class="count float-right">4篇</span>
+                </a>
+            </li>
+            <li class="">
+                <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_7466860.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_7466860.html","ab":"new"}'>
+                    <img src="https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                    <span class="title oneline">
+                        <span class="text">SpringBoot</span>
+                    </span>
+                    <span class="count float-right">5篇</span>
+                </a>
+            </li>
+            <li class="">
+                <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_7609545.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_7609545.html","ab":"new"}'>
+                    <img src="https://img-blog.csdnimg.cn/20201014180756925.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                    <span class="title oneline">
+                        <span class="text">springCloud</span>
+                    </span>
+                    <span class="count float-right">7篇</span>
+                </a>
+            </li>
+            <li class="">
+                <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_7620048.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_7620048.html","ab":"new"}'>
+                    <img src="https://img-blog.csdnimg.cn/20201014180756923.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                    <span class="title oneline">
+                        <span class="text">分布式</span>
+                    </span>
+                    <span class="count float-right">12篇</span>
+                </a>
+            </li>
+            <li class="">
+                <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_7733146.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_7733146.html","ab":"new"}'>
+                    <img src="https://img-blog.csdnimg.cn/20201014180756918.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                    <span class="title oneline">
+                        <span class="text">消息中间件</span>
+                    </span>
+                    <span class="count float-right">8篇</span>
+                </a>
+            </li>
+            <li class="">
+                <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_8072831.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_8072831.html","ab":"new"}'>
+                    <img src="https://img-blog.csdnimg.cn/20201014180756927.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                    <span class="title oneline">
+                        <span class="text">ElasticSearch</span>
+                    </span>
+                    <span class="count float-right">3篇</span>
+                </a>
+            </li>
+            <li class="">
+                <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_8084865.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_8084865.html","ab":"new"}'>
+                    <img src="https://img-blog.csdnimg.cn/20201014180756925.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                    <span class="title oneline">
+                        <span class="text">spring</span>
+                    </span>
+                    <span class="count float-right">5篇</span>
+                </a>
+            </li>
+            <li class="">
+                <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_8085832.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_8085832.html","ab":"new"}'>
+                    <img src="https://img-blog.csdnimg.cn/20201014180756919.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                    <span class="title oneline">
+                        <span class="text">redis</span>
+                    </span>
+                    <span class="count float-right">9篇</span>
+                </a>
+            </li>
+            <li class="">
+                <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_8270330.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_8270330.html","ab":"new"}'>
+                    <img src="https://img-blog.csdnimg.cn/20201014180756926.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                    <span class="title oneline">
+                        <span class="text">Docker</span>
+                    </span>
+                    <span class="count float-right">2篇</span>
+                </a>
+            </li>
+            <li class="">
+                <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_8400667.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_8400667.html","ab":"new"}'>
+                    <img src="https://img-blog.csdnimg.cn/20201014180756930.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                    <span class="title oneline">
+                        <span class="text">nio</span>
+                    </span>
+                    <span class="count float-right">2篇</span>
+                </a>
+            </li>
+            <li class="">
+                <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_8540733.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_8540733.html","ab":"new"}'>
+                    <img src="https://img-blog.csdnimg.cn/20201014180756916.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                    <span class="title oneline">
+                        <span class="text">git</span>
+                    </span>
+                </a>
+            </li>
+            <li class="">
+                <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_8834731.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_8834731.html","ab":"new"}'>
+                    <img src="https://img-blog.csdnimg.cn/20201014180756927.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                    <span class="title oneline">
+                        <span class="text">linux</span>
+                    </span>
+                    <span class="count float-right">1篇</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+    <p class="text-center">
+        <a class="flexible-btn" data-fbox="aside-archive"><img class="look-more" src="https://csdnimg.cn/release/blogv2/dist/pc/img/arrowDownWhite.png" alt=""></a>
+    </p>
+</div>
+<div id="asideNewComments" class="aside-box">
+    <h3 class="aside-title">最新评论</h3>
+    <div class="aside-content">
+        <ul class="newcomment-list">
+            <li>
+                <a class="title text-truncate" target="_blank" href="https://blog.csdn.net/AAA821/article/details/118400228#comments_17376744" data-report-click='{"mod":"popu_542","spm":"1001.2101.3001.4231","dest":"https://blog.csdn.net/AAA821/article/details/118400228#comments_17376744","ab":"new"}' data-report-view='{"mod":"popu_542","spm":"1001.2101.3001.4231","dest":"https://blog.csdn.net/AAA821/article/details/118400228#comments_17376744","ab":"new"}'>基于Docker实现OpenResty连接Redis</a>
+                <p class="comment ellipsis">
+                    <a href="https://djyqxbc-python.blog.csdn.net" class="user-name" target="_blank">大家一起学编程（python）: </a>
+                    <span class="code-comments">大佬就是大佬，666</span>
+                </p>
+            </li>
+            <li>
+                <a class="title text-truncate" target="_blank" href="https://blog.csdn.net/AAA821/article/details/83791204#comments_17089811" data-report-click='{"mod":"popu_542","spm":"1001.2101.3001.4231","dest":"https://blog.csdn.net/AAA821/article/details/83791204#comments_17089811","ab":"new"}' data-report-view='{"mod":"popu_542","spm":"1001.2101.3001.4231","dest":"https://blog.csdn.net/AAA821/article/details/83791204#comments_17089811","ab":"new"}'>数据异构</a>
+                <p class="comment ellipsis">
+                    <a href="https://blog.csdn.net/lppl010_" class="user-name" target="_blank">lppl010_: </a>
+                    <span class="code-comments">讲的好</span>
+                </p>
+            </li>
+            <li>
+                <a class="title text-truncate" target="_blank" href="https://blog.csdn.net/AAA821/article/details/81017704#comments_15844999" data-report-click='{"mod":"popu_542","spm":"1001.2101.3001.4231","dest":"https://blog.csdn.net/AAA821/article/details/81017704#comments_15844999","ab":"new"}' data-report-view='{"mod":"popu_542","spm":"1001.2101.3001.4231","dest":"https://blog.csdn.net/AAA821/article/details/81017704#comments_15844999","ab":"new"}'>Mysql中的GAP锁(间隙锁)</a>
+                <p class="comment ellipsis">
+                    <a href="https://blog.csdn.net/weixin_37766296" class="user-name" target="_blank">一行代码的自述: </a>
+                    <span class="code-comments">实践出真知</span>
+                </p>
+            </li>
+            <li>
+                <a class="title text-truncate" target="_blank" href="https://blog.csdn.net/AAA821/article/details/86650471#comments_15612569" data-report-click='{"mod":"popu_542","spm":"1001.2101.3001.4231","dest":"https://blog.csdn.net/AAA821/article/details/86650471#comments_15612569","ab":"new"}' data-report-view='{"mod":"popu_542","spm":"1001.2101.3001.4231","dest":"https://blog.csdn.net/AAA821/article/details/86650471#comments_15612569","ab":"new"}'>消息队列如何保证顺序性？`</a>
+                <p class="comment ellipsis">
+                    <a href="https://letmefly.blog.csdn.net" class="user-name" target="_blank">Tisfy: </a>
+                    <span class="code-comments">我直接一个好家伙</span>
+                </p>
+            </li>
+            <li>
+                <a class="title text-truncate" target="_blank" href="https://blog.csdn.net/AAA821/article/details/103126800#comments_15421265" data-report-click='{"mod":"popu_542","spm":"1001.2101.3001.4231","dest":"https://blog.csdn.net/AAA821/article/details/103126800#comments_15421265","ab":"new"}' data-report-view='{"mod":"popu_542","spm":"1001.2101.3001.4231","dest":"https://blog.csdn.net/AAA821/article/details/103126800#comments_15421265","ab":"new"}'>Mongodb一点总结</a>
+                <p class="comment ellipsis">
+                    <a href="https://blog.csdn.net/qq_45937199" class="user-name" target="_blank">ctotalk: </a>
+                    <span class="code-comments">学习了</span>
+                </p>
+            </li>
+        </ul>
+    </div>
+</div>
+<div id="asideNewNps" class="aside-box">
+    <h3 class="aside-title">您愿意向朋友推荐“博客详情页”吗？</h3>
+    <div class="aside-content">
+        <ul class="newnps-list">
+            <li class="newnps-item" data-type="强烈不推荐">
+                <div class="newnps-img-box">
+                    <img class="newnps-img active" src="https://csdnimg.cn/release/blogv2/dist/pc/img/npsFeel1.png" alt="">
+                    <img class="newnps-img default" src="https://csdnimg.cn/release/blogv2/dist/pc/img/npsFeelGrey1.png" alt="">
+                </div>
+                <div class="newnps-text">强烈不推荐</div>
+            </li>
+            <li class="newnps-item" data-type="不推荐">
+                <div class="newnps-img-box">
+                    <img class="newnps-img active" src="https://csdnimg.cn/release/blogv2/dist/pc/img/npsFeel2.png" alt="">
+                    <img class="newnps-img default" src="https://csdnimg.cn/release/blogv2/dist/pc/img/npsFeelGrey2.png" alt="">
+                </div>
+                <div class="newnps-text">不推荐</div>
+            </li>
+            <li class="newnps-item" data-type="一般般">
+                <div class="newnps-img-box">
+                    <img class="newnps-img active" src="https://csdnimg.cn/release/blogv2/dist/pc/img/npsFeel3.png" alt="">
+                    <img class="newnps-img default" src="https://csdnimg.cn/release/blogv2/dist/pc/img/npsFeelGrey3.png" alt="">
+                </div>
+                <div class="newnps-text">一般般</div>
+            </li>
+            <li class="newnps-item" data-type="推荐">
+                <div class="newnps-img-box">
+                    <img class="newnps-img active" src="https://csdnimg.cn/release/blogv2/dist/pc/img/npsFeel4.png" alt="">
+                    <img class="newnps-img default" src="https://csdnimg.cn/release/blogv2/dist/pc/img/npsFeelGrey4.png" alt="">
+                </div>
+                <div class="newnps-text">推荐</div>
+            </li>
+            <li class="newnps-item" data-type="强烈推荐">
+                <div class="newnps-img-box">
+                    <img class="newnps-img active" src="https://csdnimg.cn/release/blogv2/dist/pc/img/npsFeel5.png" alt="">
+                    <img class="newnps-img default" src="https://csdnimg.cn/release/blogv2/dist/pc/img/npsFeelGrey5.png" alt="">
+                </div>
+                <div class="newnps-text">强烈推荐</div>
+            </li>
+        </ul>
+        <div class="newnps-form-box">
+        <div class="newnps-form">
+            <input type="text" placeholder="请输入建议或反馈后点击提交" class="newnps-input">
+            <span class="newnps-btn">提交</span>
+        </div>
+        </div>
+    </div>
+</div>
+<div id="asideArchive" class="aside-box" style="display:block!important; width:300px;">
+    <h3 class="aside-title">最新文章</h3>
+    <div class="aside-content">
+        <ul class="inf_list clearfix">
+            <li class="clearfix">
+            <a href="https://blog.csdn.net/AAA821/article/details/120432510" target="_blank" data-report-click='{"mod":"popu_382","spm":"1001.2101.3001.4136","dest":"https://blog.csdn.net/AAA821/article/details/120432510","ab":"new"}' data-report-view='{"mod":"popu_382","dest":"https://blog.csdn.net/AAA821/article/details/120432510","ab":"new"}'>Tomcat版本大于7.0.72引起get请求400问题</a>
+            </li>
+            <li class="clearfix">
+            <a href="https://blog.csdn.net/AAA821/article/details/120364614" target="_blank" data-report-click='{"mod":"popu_382","spm":"1001.2101.3001.4136","dest":"https://blog.csdn.net/AAA821/article/details/120364614","ab":"new"}' data-report-view='{"mod":"popu_382","dest":"https://blog.csdn.net/AAA821/article/details/120364614","ab":"new"}'>Feign跨服务调用导出文件,浏览器没有自动下载文件问题解决</a>
+            </li>
+            <li class="clearfix">
+            <a href="https://blog.csdn.net/AAA821/article/details/119421421" target="_blank" data-report-click='{"mod":"popu_382","spm":"1001.2101.3001.4136","dest":"https://blog.csdn.net/AAA821/article/details/119421421","ab":"new"}' data-report-view='{"mod":"popu_382","dest":"https://blog.csdn.net/AAA821/article/details/119421421","ab":"new"}'>基于Docker搭建Canal</a>
+            </li>
+        </ul>
+        <div class="archive-bar"></div>
+        <div class="archive-box">
+                <div class="archive-list-item"><a href="https://blog.csdn.net/AAA821/article/month/2021/09" target="_blank" data-report-click='{"mod":"popu_538","spm":"1001.2101.3001.4138","ab":"new","dest":""}'><span class="year">2021年</span><span class="num">15篇</span></a></div>
+                <div class="archive-list-item"><a href="https://blog.csdn.net/AAA821/article/month/2020/10" target="_blank" data-report-click='{"mod":"popu_538","spm":"1001.2101.3001.4138","ab":"new","dest":""}'><span class="year">2020年</span><span class="num">11篇</span></a></div>
+                <div class="archive-list-item"><a href="https://blog.csdn.net/AAA821/article/month/2019/12" target="_blank" data-report-click='{"mod":"popu_538","spm":"1001.2101.3001.4138","ab":"new","dest":""}'><span class="year">2019年</span><span class="num">14篇</span></a></div>
+                <div class="archive-list-item"><a href="https://blog.csdn.net/AAA821/article/month/2018/12" target="_blank" data-report-click='{"mod":"popu_538","spm":"1001.2101.3001.4138","ab":"new","dest":""}'><span class="year">2018年</span><span class="num">98篇</span></a></div>
+                <div class="archive-list-item"><a href="https://blog.csdn.net/AAA821/article/month/2017/10" target="_blank" data-report-click='{"mod":"popu_538","spm":"1001.2101.3001.4138","ab":"new","dest":""}'><span class="year">2017年</span><span class="num">29篇</span></a></div>
+        </div>
+    </div>
+</div>
+	<div id="footerRightAds" class="isShowFooterAds">
+		<div class="aside-box">
+			<div id="kp_box_57" data-pid="57"><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- PC-博客详情页-矩形-左下视窗（自适应） -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-1076724771190722"
+     data-ad-slot="1894159733"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script><img class="pre-img-lasy" data-src="https://kunyu.csdn.net/1.png?p=57&a=707&c=0&k=&spm=1001.2101.3001.5001&d=1&t=3&u=419a2ceb552c40c4aa79e2525c773b51" style="display: block;width: 0px;height: 0px;"></div>
+		</div>
+	</div>
+    <!-- 详情页显示目录 -->
+<!--文章目录-->
+<div id="asidedirectory" class="aside-box">
+    <div class='groupfile' id="directory">
+        <h3 class="aside-title">目录</h3>
+        <div class="align-items-stretch group_item">
+            <div class="pos-box">
+            <div class="scroll-box">
+                <div class="toc-box"></div>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+</aside>
+<script>
+	$("a.flexible-btn").click(function(){
+		$(this).parents('div.aside-box').removeClass('flexible-box');
+		$(this).parents("p.text-center").remove();
+	})
+</script>
+<script type="text/javascript"  src="https://g.csdnimg.cn/user-tooltip/2.5/user-tooltip.js"></script>
+<script type="text/javascript"  src="https://g.csdnimg.cn/user-medal/1.0.7/user-medal.js"></script>    </div>
+<div class="recommend-right  align-items-stretch clearfix" id="rightAside" data-type="recommend">
+    <aside class="recommend-right_aside">
+        <div id="recommend-right" >
+                        <div class='flex-column aside-box groupfile' id="groupfile">
+                <div class="groupfile-div">
+                <h3 class="aside-title">目录</h3>
+                <div class="align-items-stretch group_item">
+                    <div class="pos-box">
+                        <div class="scroll-box">
+                            <div class="toc-box"></div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+                <div id="recommendAdBox">
+                    <div id="kp_box_479" data-pid="479"><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- PC-博客详情页-右侧视窗（自适应） -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-1076724771190722"
+     data-ad-slot="3484057394"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script><img class="pre-img-lasy" data-src="https://kunyu.csdn.net/1.png?p=479&a=3267&c=0&k=&spm=1001.2101.3001.4834&d=1&t=3&u=f19e8b570be64dc2b0e4be354751f90a" style="display: block;width: 0px;height: 0px;"></div>
+                </div>
+            <div class='aside-box kind_person d-flex flex-column'>
+                    <h3 class="aside-title">分类专栏</h3>
+                    <div class="align-items-stretch kindof_item" id="kind_person_column">
+                        <div class="aside-content">
+                            <ul>
+                                <li class="">
+                                    <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_11174949.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_11174949.html","ab":"new"}'>
+                                        <img src="https://img-blog.csdnimg.cn/20201014180756928.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                                        <span class="title oneline">
+                                            <span class="text">openresty</span>
+                                        </span>
+                                        <span class="count float-right">1篇</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_11134595.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_11134595.html","ab":"new"}'>
+                                        <img src="https://img-blog.csdnimg.cn/20201014180756780.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                                        <span class="title oneline">
+                                            <span class="text">hadoop</span>
+                                        </span>
+                                        <span class="count float-right">6篇</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_11134741.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_11134741.html","ab":"new"}'>
+                                        <img src="https://img-blog.csdnimg.cn/20201014180756928.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                                        <span class="title oneline">
+                                            <span class="text">hive</span>
+                                        </span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_9620163.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_9620163.html","ab":"new"}'>
+                                        <img src="https://img-blog.csdnimg.cn/20201014180756927.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                                        <span class="title oneline">
+                                            <span class="text">Socket</span>
+                                        </span>
+                                        <span class="count float-right">4篇</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_9522073.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_9522073.html","ab":"new"}'>
+                                        <img src="https://img-blog.csdnimg.cn/20201014180756916.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                                        <span class="title oneline">
+                                            <span class="text">Mongodb</span>
+                                        </span>
+                                        <span class="count float-right">1篇</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_6970218.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_6970218.html","ab":"new"}'>
+                                        <img src="https://img-blog.csdnimg.cn/20201014180756738.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                                        <span class="title oneline">
+                                            <span class="text">JAVA基础</span>
+                                        </span>
+                                        <span class="count float-right">49篇</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_6970219.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_6970219.html","ab":"new"}'>
+                                        <img src="https://img-blog.csdnimg.cn/20201014180756724.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                                        <span class="title oneline">
+                                            <span class="text">多线程理解</span>
+                                        </span>
+                                        <span class="count float-right">5篇</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_6970221.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_6970221.html","ab":"new"}'>
+                                        <img src="https://img-blog.csdnimg.cn/20201014180756928.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                                        <span class="title oneline">
+                                            <span class="text">Java内存</span>
+                                        </span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_6970223.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_6970223.html","ab":"new"}'>
+                                        <img src="https://img-blog.csdnimg.cn/20201014180756927.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                                        <span class="title oneline">
+                                            <span class="text">Mysql</span>
+                                        </span>
+                                        <span class="count float-right">18篇</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_6970224.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_6970224.html","ab":"new"}'>
+                                        <img src="https://img-blog.csdnimg.cn/20201014180756925.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                                        <span class="title oneline">
+                                            <span class="text">Oracle</span>
+                                        </span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_6970225.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_6970225.html","ab":"new"}'>
+                                        <img src="https://img-blog.csdnimg.cn/20201014180756925.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                                        <span class="title oneline">
+                                            <span class="text">第三方API调用</span>
+                                        </span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_6970239.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_6970239.html","ab":"new"}'>
+                                        <img src="https://img-blog.csdnimg.cn/20201014180756724.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                                        <span class="title oneline">
+                                            <span class="text">队列</span>
+                                        </span>
+                                        <span class="count float-right">1篇</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_6981473.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_6981473.html","ab":"new"}'>
+                                        <img src="https://img-blog.csdnimg.cn/20201014180756916.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                                        <span class="title oneline">
+                                            <span class="text">遇到的问题</span>
+                                        </span>
+                                        <span class="count float-right">7篇</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_7034548.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_7034548.html","ab":"new"}'>
+                                        <img src="https://img-blog.csdnimg.cn/20201014180756923.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                                        <span class="title oneline">
+                                            <span class="text">TCP</span>
+                                        </span>
+                                        <span class="count float-right">4篇</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_7466860.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_7466860.html","ab":"new"}'>
+                                        <img src="https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                                        <span class="title oneline">
+                                            <span class="text">SpringBoot</span>
+                                        </span>
+                                        <span class="count float-right">5篇</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_7609545.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_7609545.html","ab":"new"}'>
+                                        <img src="https://img-blog.csdnimg.cn/20201014180756925.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                                        <span class="title oneline">
+                                            <span class="text">springCloud</span>
+                                        </span>
+                                        <span class="count float-right">7篇</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_7620048.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_7620048.html","ab":"new"}'>
+                                        <img src="https://img-blog.csdnimg.cn/20201014180756923.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                                        <span class="title oneline">
+                                            <span class="text">分布式</span>
+                                        </span>
+                                        <span class="count float-right">12篇</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_7733146.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_7733146.html","ab":"new"}'>
+                                        <img src="https://img-blog.csdnimg.cn/20201014180756918.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                                        <span class="title oneline">
+                                            <span class="text">消息中间件</span>
+                                        </span>
+                                        <span class="count float-right">8篇</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_8072831.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_8072831.html","ab":"new"}'>
+                                        <img src="https://img-blog.csdnimg.cn/20201014180756927.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                                        <span class="title oneline">
+                                            <span class="text">ElasticSearch</span>
+                                        </span>
+                                        <span class="count float-right">3篇</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_8084865.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_8084865.html","ab":"new"}'>
+                                        <img src="https://img-blog.csdnimg.cn/20201014180756925.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                                        <span class="title oneline">
+                                            <span class="text">spring</span>
+                                        </span>
+                                        <span class="count float-right">5篇</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_8085832.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_8085832.html","ab":"new"}'>
+                                        <img src="https://img-blog.csdnimg.cn/20201014180756919.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                                        <span class="title oneline">
+                                            <span class="text">redis</span>
+                                        </span>
+                                        <span class="count float-right">9篇</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_8270330.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_8270330.html","ab":"new"}'>
+                                        <img src="https://img-blog.csdnimg.cn/20201014180756926.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                                        <span class="title oneline">
+                                            <span class="text">Docker</span>
+                                        </span>
+                                        <span class="count float-right">2篇</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_8400667.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_8400667.html","ab":"new"}'>
+                                        <img src="https://img-blog.csdnimg.cn/20201014180756930.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                                        <span class="title oneline">
+                                            <span class="text">nio</span>
+                                        </span>
+                                        <span class="count float-right">2篇</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_8540733.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_8540733.html","ab":"new"}'>
+                                        <img src="https://img-blog.csdnimg.cn/20201014180756916.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                                        <span class="title oneline">
+                                            <span class="text">git</span>
+                                        </span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a class="clearfix" target="_blank" href="https://blog.csdn.net/aaa821/category_8834731.html" data-report-click='{"mod":"popu_537","spm":"1001.2101.3001.4137","strategy":"pc付费专栏左侧入口","dest":"https://blog.csdn.net/aaa821/category_8834731.html","ab":"new"}'>
+                                        <img src="https://img-blog.csdnimg.cn/20201014180756927.png?x-oss-process=image/resize,m_fixed,h_64,w_64" alt="" onerror="this.src='https://img-blog.csdnimg.cn/20201014180756922.png?x-oss-process=image/resize,m_fixed,h_64,w_64'">
+                                        <span class="title oneline">
+                                            <span class="text">linux</span>
+                                        </span>
+                                        <span class="count float-right">1篇</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </aside>
+</div>
+
+</div>
+<div class="mask-dark"></div>
+<script type="text/javascript">
+    var timert = setInterval(function(){
+      sideToolbar = $(".csdn-side-toolbar");
+      if (sideToolbar.length > 0) {
+        sideToolbar.css('cssText','bottom:64px !important;')
+        clearInterval(timert);
+      }
+    }, 200);
+</script>
+<script>
+    var articleId = 72550767;
+    var commentscount = 0;
+    var curentUrl = "https://blog.csdn.net/aaa821/article/details/72550767";
+    var myUrl = "https://my.csdn.net/";
+    var highlight = ["理解","扩散","写","读"];//高亮数组
+    var isRecommendModule = true;
+    var isBaiduPre = true;
+    var baiduCount = 2;
+    var share_card_url = "https://blog.csdn.net/AAA821/article/shareArticleCardPage?article_id=72550767"
+	var articleType = 1;
+    var baiduKey = "扩散写";
+    var userNewReport = false;
+    var needInsertBaidu = true;
+    var recommendRegularDomainArr = ["blog.csdn.net/.+/article/details/","download.csdn.net/download/","edu.csdn.net/course/detail/","ask.csdn.net/questions/","bbs.csdn.net/topics/","www.csdn.net/gather_.+/"]
+    var codeStyle = "atom-one-dark";
+    var baiduSearchType = "baidulandingword";
+    var canRead = true;
+    var blogMoveHomeArticle = false;
+    var showPcWindowAd = false;
+    var showSearchText = "";
+    var linkPage = true;
+    var articleSource = 1;
+    var articleReport = '{"pid": "blog", "spm":"1001.2101"}';
+    var isShowToQuestion = false;
+    var baiduSearchChannel = 'pc_relevant'
+    var baiduSearchIdentification = '.no_search_link'
+    var initRewardObject = {
+        giver: currentUserName,
+        anchor: username,
+        articleId: articleId,
+        sign: ''
+    }
+</script>
+<script src="https://csdnimg.cn/public/sandalstrap/1.4/js/sandalstrap.min.js"></script>
+<div class="skin-boxshadow"></div>
+<div class="directory-boxshadow"></div>
+<div class="pay-code">
+    <div class="pay-money">实付<span class="pay-money-span" data-nowprice='' data-oldprice=''>元</span></div>
+    <div class="content-blance"><a class="blance-bt" href="javascript:;">使用余额支付</a></div>
+    <div class="content-code">
+    <div id="payCode" data-id="">
+            <div class="renovate">
+                <img src="https://csdnimg.cn/release/blogv2/dist/pc/img/pay-time-out.png">
+                <span>点击重新获取</span>
+            </div>
+        </div>
+        <div class="pay-style"><span><img src="https://csdnimg.cn/release/blogv2/dist/pc/img/weixin.png"></span><span><img src="https://csdnimg.cn/release/blogv2/dist/pc/img/zhifubao.png"></span><span><img src="https://csdnimg.cn/release/blogv2/dist/pc/img/jingdong.png"></span><span class="text">扫码支付</span></div>
+    </div>
+    <div class="bt-close"><svg t="1567152543821" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="10924" xmlns:xlink="http://www.w3.org/1999/xlink" width="12" height="12"><defs><style type="text/css"></style></defs><path d="M512 438.378667L806.506667 143.893333a52.032 52.032 0 1 1 73.6 73.621334L585.621333 512l294.485334 294.485333a52.074667 52.074667 0 0 1-73.6 73.642667L512 585.621333 217.514667 880.128a52.053333 52.053333 0 1 1-73.621334-73.642667L438.378667 512 143.893333 217.514667a52.053333 52.053333 0 1 1 73.621334-73.621334L512 438.378667z" fill="" p-id="10925"></path></svg></div>
+    <!-- <p style="margin-top: 8px;font-size: 14px;" class="text-center">支付成功即可阅读</p> -->
+    <div class="pay-balance">
+    <input type="radio" class="pay-code-radio" data-type="details"> 
+    <span class="span">钱包余额</span>
+    <span class="balance" style="color:#FC5531;font-size:14px;">0</span>  
+    <div class="pay-code-tile">
+        <img src="https://csdnimg.cn/release/blogv2/dist/pc/img/pay-help.png" alt="">
+        <div class="pay-code-content">
+            <div class="span">
+                <p class="title">抵扣说明：</p>
+                <p> 1.余额是钱包充值的虚拟货币，按照1:1的比例进行支付金额的抵扣。<br> 2.余额无法直接购买下载，可以购买VIP、C币套餐、付费专栏及课程。</p>
+            </div>
+        </div>
+    </div>
+    </div>
+    <a class="pay-balance-con" href="https://i.csdn.net/#/wallet/balance/recharge" target="_blank"><img src="https://csdnimg.cn/release/blogv2/dist/pc/img/recharge.png" alt=""><span  >余额充值</span></a>
+</div>
+<div style="display:none;">
+	<img src="" onerror='setTimeout(function(){if(!/(csdn.net|iteye.com|baiducontent.com|googleusercontent.com|360webcache.com|sogoucdn.com|bingj.com|baidu.com)$/.test(window.location.hostname)){window.location.href="\x68\x74\x74\x70\x73\x3a\x2f\x2f\x77\x77\x77\x2e\x63\x73\x64\x6e\x2e\x6e\x65\x74"}},3000);'>
+</div>
+</body>
+    <!-- 富文本柱状图  -->
+	<link rel="stylesheet" href="https://csdnimg.cn/release/blog_editor_html/release1.6.12/ckeditor/plugins/chart/chart.css"/>
+	<script type="text/javascript" src="https://csdnimg.cn/release/blog_editor_html/release1.6.12/ckeditor/plugins/chart/lib/chart.min.js"></script>
+    <script type="text/javascript" src="https://csdnimg.cn/release/blog_editor_html/release1.6.12/ckeditor/plugins/chart/widget2chart.js"></script>
+<script src="https://csdnimg.cn/release/blogv2/dist/components/js/pc_wap_highlight-db1e81323a.min.js" type="text/javascript"></script>
+<script src="https://csdnimg.cn/release/blogv2/dist/components/js/pc_wap_common-6a9acd4c62.min.js" type="text/javascript"></script>
+<script src="https://csdnimg.cn/release/blogv2/dist/components/js/edit_copy_code-1320dfe85c.min.js" type="text/javascript"></script>
+<link rel="stylesheet" href="https://csdnimg.cn/release/blog_editor_html/release1.6.12/ckeditor/plugins/codesnippet/lib/highlight/styles/atom-one-dark.css">
+<script>
+ // 全局声明
+ if (window.csdn === undefined) {
+      window.csdn = {};
+    }
+    window.csdn.sideToolbar = {
+        options: {
+            report:{
+                isShow: true,
+            },
+            qr: {
+                isShow: false,
+            },
+            guide: {
+                isShow: true
+            }
+        }
+    }
+    $(function(){
+        $(document).on('click',"a.option-box[data-type='report']",function() {
+            window.csdn.userLogin.loadAjax(function(res){
+                if(userNewReport){
+                    showReportNew(false,articleTitles);
+                }else{
+                    showReport(false,articleTitles);
+                }
+            })
+        });
+    })
+</script>
+    <script src="https://g.csdnimg.cn/baidu-search/1.0.9/baidu-search.js"  type="text/javascript"></script>
+<script src="https://csdnimg.cn/release/download/old_static/js/qrcode.js"></script>
+<script src="https://g.csdnimg.cn/lib/qrcode/1.0.0/qrcode.min.js"></script>
+<script src="https://g.csdnimg.cn/user-ordercart/2.0.6/user-ordercart.js" type="text/javascript"></script>
+<script src="https://g.csdnimg.cn/user-ordertip/4.1.3/user-ordertip.js" type="text/javascript" ></script>
+<script src="https://csdnimg.cn/release/blogv2/dist/pc/js/common-24fa4dcb20.min.js" type="text/javascript"></script>
+<script src="https://csdnimg.cn/release/blogv2/dist/pc/js/detail-44f0825236.min.js" type="text/javascript"></script>
+<script src="https://csdnimg.cn/release/blogv2/dist/pc/js/column-8eca907613.min.js" type="text/javascript"></script>
+<script src="https://g.csdnimg.cn/side-toolbar/3.0/side-toolbar.js" type="text/javascript"></script>
+<script src="https://g.csdnimg.cn/copyright/1.0.4/copyright.js" type="text/javascript"></script>
+<script>
+    $(".MathJax").remove();
+    if ($('div.markdown_views pre.prettyprint code.hljs').length > 0) {
+        $('div.markdown_views')[0].className = 'markdown_views';
+    }
+</script>
+<script type="text/javascript" src="https://csdnimg.cn/release/blog_mathjax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+            "HTML-CSS": {
+                    linebreaks: { automatic: true, width: "94%container" },
+                    imageFont: null
+            },
+            tex2jax: {
+                preview: "none",
+                ignoreClass:"title-article"
+            },
+            mml2jax: {
+                preview: 'none'
+            }
+    });
+</script>
+<script type="text/javascript" crossorigin src="https://g.csdnimg.cn/common/csdn-login-box/csdn-login-box.js"></script></html>
