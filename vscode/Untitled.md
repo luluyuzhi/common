@@ -19,3 +19,15 @@ vscode 的几个 Part 已经被注册成单例
 
 
 SideBySideEditor 
+
+
+
+
+
+TerminalInstance 提供的  创建 _shellLaunchConfig 
+
+
+
+
+
+![image-20211028002554669](../source/img/image-20211028002554669.png)
